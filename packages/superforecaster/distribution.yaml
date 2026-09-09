@@ -1,0 +1,12 @@
+# Hermes profile distribution manifest.
+# Schema: hermes_cli/profile_distribution.py (only `name` is required).
+name: superforecaster
+version: 1.0.0
+description: "Calibrated probability forecasts: reference classes first, Fermi decomposition, Bayesian updating, premortem, and bias check."
+hermes_requires: ">=0.21.0"
+author: "Kushal D'Souza (lyndonkl)"
+license: "MIT"
+
+# No model or provider is pinned: installers keep whatever credentials they
+# already have. The agent needs a web-capable model provider and nothing else.
+env_requires: []

@@ -1,0 +1,25 @@
+name: validate
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: python3 -m pip install pyyaml
+      - name: Shared skills are in sync
+        run: python3 tools/sync_shared.py --check
+      - name: Packages and skills meet the Hermes rules
+        run: python3 tools/validate.py --selftest
+      - name: Hermes upstream linter (advisory)
+        continue-on-error: true
+        run: |
+          git clone --depth 1 https://github.com/NousResearch/hermes-agent /tmp/hermes-agent
+          python3 tools/validate.py --hermes-src /tmp/hermes-agent --quiet

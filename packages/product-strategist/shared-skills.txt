@@ -1,0 +1,4 @@
+# <category>/<skill> — copied from shared/skills/<skill> by tools/sync_shared.py
+strategy/business-narrative-builder
+writing/readability-check
+writing/slop-detector

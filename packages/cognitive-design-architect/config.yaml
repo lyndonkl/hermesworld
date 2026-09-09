@@ -1,0 +1,13 @@
+# Behavioural defaults for the cognitive-design-architect profile.
+# Deliberately no `model:` block — the installer's own credentials decide the
+# model. tools/install.sh seeds one from your root profile; or run
+# `hermes -p cognitive-design-architect model` after install. Everything else here is optional and
+# preserved across `hermes profile update` (the installer never overwrites
+# config.yaml unless you pass --force-config).
+
+agent:
+  reasoning_effort: "high"
+
+skills:
+  creation_nudge_interval: 0     # this is a curated agent; do not nudge it to write new skills
+

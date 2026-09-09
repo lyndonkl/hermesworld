@@ -1,0 +1,54 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+
+# Editor / tooling
+.idea/
+.vscode/
+*.code-workspace
+.claude/
+.hermes/
+
+# Hermes runtime files that must never land in a distribution
+auth.json
+.env
+.env.EXAMPLE
+state.db
+state.db-shm
+state.db-wal
+hermes_state.db
+response_store.db*
+gateway.pid
+gateway_state.json
+processes.json
+auth.lock
+active_profile
+.update_check
+errors.log
+.hermes_history
+memories/
+sessions/
+logs/
+plans/
+workspace/
+home/
+image_cache/
+audio_cache/
+document_cache/
+browser_screenshots/
+cache/
+checkpoints/
+sandboxes/
+backups/
+local/
+
+# Build output from tools/publish_mirrors.sh
+.mirrors/

@@ -1,0 +1,12 @@
+# Hermes profile distribution manifest.
+# Schema: hermes_cli/profile_distribution.py (only `name` is required).
+name: product-strategist
+version: 1.0.0
+description: "Reverse-engineers a real product's vision, strategy, and tactics from public material, graded by evidence and written for a reader with no background."
+hermes_requires: ">=0.21.0"
+author: "Kushal D'Souza (lyndonkl)"
+license: "MIT"
+
+# No model or provider is pinned: installers keep whatever credentials they
+# already have. The agent needs a web-capable model provider and nothing else.
+env_requires: []
