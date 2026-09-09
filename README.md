@@ -22,46 +22,82 @@ rules are written down in [AGENTS.md](AGENTS.md) and enforced by
 | [`cognitive-design-architect`](packages/cognitive-design-architect/) | Applies cognitive science to interfaces, data visualizations, educational content, and presentations, and explains why each choice works. | 8 skills: 6 design methods, prose checks |
 | [`geometric-deep-learning-architect`](packages/geometric-deep-learning-architect/) | Symmetry discovery, group identification, and equivariant neural-network design and audit. | 7 skills: 5 geometric deep learning methods, prose checks |
 
-## Install
+## Prerequisites
 
-Hermes installs a distribution from a git URL **or a local directory**, and it
-requires `distribution.yaml` at the root of whatever it is given. A monorepo
-sub-directory therefore installs from a local clone:
+- Hermes Agent 0.21 or newer, installed and already talking to a model. The
+  desktop app installs the `hermes` CLI at `~/.local/bin/hermes`; check with
+  `hermes --version`. If `hermes chat` does not work yet, finish `hermes setup`
+  first: these packages reuse whatever model and credentials you already have.
+- `git`, and `python3` with PyYAML (`python3 -m pip install pyyaml`). PyYAML is
+  only needed by the repo tooling, not by the agents.
+- Access to this repository (it is private at the moment).
+
+## Quick start
 
 ```bash
 git clone https://github.com/lyndonkl/hermesworld.git
 cd hermesworld
-tools/install.sh superforecaster            # one package
-tools/install.sh --all                      # every package
+tools/install.sh --all                 # or: tools/install.sh superforecaster
 ```
 
 `tools/install.sh` runs `hermes profile install ./packages/<name> --alias --yes`
-and then seeds the new profile's model block from your root profile, because
-packages deliberately do not pin a model or provider. Equivalent by hand:
+for each package, then copies the model block from your root profile into the
+new profile, because packages deliberately do not pin a model or provider.
+
+Verify:
 
 ```bash
-hermes profile install ./packages/superforecaster --alias
-hermes -p superforecaster model          # pick the model if none was seeded
-superforecaster chat                     # or: hermes -p superforecaster chat
+hermes profile list                    # one row per package, Distribution column filled
+hermes -p superforecaster skills list  # 8 local skills, all enabled
+hermes profile show superforecaster    # SOUL.md: exists, Distribution: superforecaster@1.0.0
 ```
 
-Updating later:
+Use:
+
+```bash
+superforecaster chat                   # the alias created by --alias
+hermes -p valuation-suite chat         # the same thing without an alias
+```
+
+In the desktop app every installed profile appears in the profile rail and, with
+Bot Mode on (Settings → Plugins → Bots), as a Bot in the roster: open its chat,
+give it a title and avatar, seat it in a group chat, or `@mention` it from
+another Bot's chat. Nothing extra to configure; a Bot is a profile.
+
+First prompts to try are in each package's README, for example
+[packages/valuation-suite/README.md](packages/valuation-suite/README.md).
+
+## Update, remove, and other install paths
 
 ```bash
 git pull
-hermes profile update superforecaster    # re-copies SOUL, skills, cron; keeps your config, memories, sessions
+hermes profile update superforecaster  # re-copies SOUL.md and skills; keeps your config, memories, sessions
+hermes profile delete superforecaster  # removes the profile and its alias
 ```
 
-Installing a single skill instead of a whole agent also works, straight from
-GitHub by path:
+Hermes installs a distribution from a git URL or a local directory and requires
+`distribution.yaml` at the root of what it is given, with no sub-directory
+syntax. That is why the commands above install from a local clone. If you want
+`hermes profile install github.com/<owner>/hermes-<package>` to work,
+`tools/publish_mirrors.sh <owner> --create` subtree-splits each package into its
+own repository.
+
+A single skill can also be installed on its own, straight from GitHub by path:
 
 ```bash
 hermes skills install lyndonkl/hermesworld/packages/superforecaster/skills/forecasting/reference-class-forecasting
 ```
 
-If you ever want `hermes profile install github.com/...` for a package,
-`tools/publish_mirrors.sh <owner>` subtree-splits each package into its own
-`hermes-<package>` repository, whose root is the package.
+## Troubleshooting
+
+| Symptom | Fix |
+|---|---|
+| `hermes profile install` says "No distribution.yaml in ..." | Point it at `packages/<name>`, not the repo root |
+| First chat says no model or provider is configured | `hermes -p <name> model`, or re-run `tools/install.sh <name>` after `hermes setup` on your root profile |
+| The profile shows dozens of extra skills | `.no-bundled-skills` was deleted from the profile; that is fine, it just widens the skill index |
+| `readability.py` exits asking for `textstat` | `python3 -m pip install --user textstat` (optional; the agents continue without it) |
+| `product-strategist` cannot render a PDF | Install pandoc and a LaTeX engine (`brew install pandoc basictex` on macOS); markdown output is unaffected |
+| A profile name collides with a command on your PATH | `hermes profile install ./packages/<name> --name <other-name>` |
 
 ## What is in a package
 
