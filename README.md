@@ -84,6 +84,17 @@ and [docs/MODELS.md](docs/MODELS.md) for which model fits which agent and why.
 First prompts to try are in each package's README, for example
 [packages/valuation-suite/README.md](packages/valuation-suite/README.md).
 
+Optional, persistent memory across all profiles with a self-hosted Honcho stack
+running on a local model (Docker + Apple Silicon by default):
+
+```bash
+tools/local_llm.sh                          # local model server on :8000 (keep running)
+python3 tools/memory_setup.py up            # Honcho stack on :8001, LLM jobs routed locally
+python3 tools/memory_setup.py wire --peer-name "Your Name"
+```
+
+Why Honcho, what it learns, local-model options and costs: [docs/MEMORY.md](docs/MEMORY.md).
+
 ## Update, remove, and other install paths
 
 ```bash
@@ -124,6 +135,13 @@ hermes skills install lyndonkl/hermesworld/packages/superforecaster/skills/forec
 | Specialists are | stage briefs passed to anonymous `delegate_task` children | named Bots with their own SOUL, memory, skills, model tier |
 | Dispatch | one call, several parallel tasks, structured results | one `message_agent` job per Bot, replies as notifications |
 | Source of truth | the briefs and finance skills in `valuation-suite` | generated from the same files by `tools/build_team.py` |
+
+## Documentation
+
+- [AGENTS.md](AGENTS.md): the rules every package and skill follows, and the porting checklist.
+- [docs/MODELS.md](docs/MODELS.md): where a model can be set, what each agent demands, the benchmark evidence, presets.
+- [docs/MEMORY.md](docs/MEMORY.md): self-hosted Honcho memory on a local model, what each profile learns, limits.
+- Each package's `README.md`: what it does, first prompts, its skills.
 
 ## What is in a package
 

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Keeps the local model server (tools/local_llm.sh) running at login on macOS, so the
+  Honcho memory stack always has an LLM to talk to.
+
+  Install (edit the two /Users/YOU paths first):
+    cp infra/launchd/com.hermesworld.local-llm.plist ~/Library/LaunchAgents/
+    launchctl load -w ~/Library/LaunchAgents/com.hermesworld.local-llm.plist
+  Logs: ~/Library/Logs/hermesworld-local-llm.log
+  Remove: launchctl unload -w ~/Library/LaunchAgents/com.hermesworld.local-llm.plist
+
+  The Honcho containers themselves restart with Docker Desktop; enable
+  "Start Docker Desktop when you sign in" in its settings.
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.hermesworld.local-llm</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/bash</string>
+    <string>/Users/YOU/path/to/hermesworld/tools/local_llm.sh</string>
+  </array>
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>PATH</key>
+    <string>/Users/YOU/.local/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
+    <key>LOCAL_LLM_MODEL</key>
+    <string>mlx-community/Qwen3.8-27B-4bit</string>
+    <key>LOCAL_EMBED_MODEL</key>
+    <string>mlx-community/all-MiniLM-L6-v2-4bit</string>
+    <key>LOCAL_LLM_PORT</key>
+    <string>8000</string>
+  </dict>
+  <key>RunAtLoad</key>
+  <true/>
+  <key>KeepAlive</key>
+  <true/>
+  <key>ThrottleInterval</key>
+  <integer>30</integer>
+  <key>StandardOutPath</key>
+  <string>/Users/YOU/Library/Logs/hermesworld-local-llm.log</string>
+  <key>StandardErrorPath</key>
+  <string>/Users/YOU/Library/Logs/hermesworld-local-llm.log</string>
+</dict>
+</plist>

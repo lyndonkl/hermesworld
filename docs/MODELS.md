@@ -177,3 +177,4 @@ memory manager refuses a second). Different profiles may use different providers
 | Enable | `hermes -p <name> memory setup` | `hermes -p <name> memory setup` |
 
 Nothing memory-related ships in these packages; memory is user-owned by design.
+The chosen set-up, self-hosted Honcho on a local model, is in [MEMORY.md](MEMORY.md).

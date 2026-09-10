@@ -36,7 +36,7 @@ Then start a session:
 hermes -p superforecaster chat
 ```
 
-The package pins no model or provider. `tools/install.sh` seeds the profile's model block from your root profile; change it any time with `hermes -p superforecaster model`. The agent needs a web-capable provider (it searches for every base rate) and nothing else.
+The package pins `meta/muse-spark-1.3` on OpenRouter at high reasoning effort (see `docs/MODELS.md`); change it any time with `hermes -p superforecaster model`. The agent needs a web-capable provider (it searches for every base rate) and nothing else.
 
 Optional: `readability-check` scores the final write-up with the `textstat` package. Without it the script prints the install line and exits 3, and the agent states the exception instead of scoring.
 
@@ -76,14 +76,14 @@ The two shared skills are copied from `shared/skills/` by `tools/sync_shared.py`
 - **Depth is inferred, then confirmable.** The original opened by asking "Quick, Standard or Deep?". This version infers the depth from the request, states it, and lets you redirect; the clarifying question is reserved for ambiguity in the forecasting question itself.
 - **Tool names** follow Hermes: `web_search` and `web_extract` for evidence, `write_file` for the forecast document, `todo` for the pipeline checklist.
 - **Skill layout** follows Hermes: `resources/` became `scripts/`, `references/`, `templates/`, and `assets/`, and every skill carries a 60-character description, tags, and related skills for the Hermes skill index.
-- **No model pin.** The Claude agent inherited its model from the plugin; here the installer's own credentials decide.
+- **A pinned model.** The Claude agent inherited its model from the plugin; here `config.yaml` pins `meta/muse-spark-1.3` on OpenRouter, chosen for reasoning plus web research (`docs/MODELS.md`).
 
 ## Files
 
 ```
 distribution.yaml     manifest
 SOUL.md               the agent: identity, standing rules, the five-phase pipeline, output template
-config.yaml           behavioural defaults (reasoning effort; no model pin)
+config.yaml           model (meta/muse-spark-1.3), reasoning effort, cheap auxiliary model
 shared-skills.txt     shared skills copied in by tools/sync_shared.py
 skills/forecasting/   the five forecasting skills and the protocol reference
 skills/writing/       strategist-voice, slop-detector, readability-check
