@@ -44,8 +44,10 @@ tools/install.sh --all                 # everything
 ```
 
 `tools/install.sh` runs `hermes profile install ./packages/<name> --alias --yes`
-for each package, then copies the model block from your root profile into the
-new profile, because packages deliberately do not pin a model or provider.
+for each package. Every package ships a `config.yaml` that pins an OpenRouter
+model chosen for its workload (the "balanced" preset in
+[docs/MODELS.md](docs/MODELS.md)); if a package ever ships without one, the
+installer copies the model block from your root profile instead.
 
 Verify:
 
@@ -129,7 +131,7 @@ hermes skills install lyndonkl/hermesworld/packages/superforecaster/skills/forec
 packages/<name>/
   distribution.yaml      manifest (name, version, description, author, license)
   SOUL.md                the agent: identity and standing operating procedure
-  config.yaml            behavioural defaults; no model pin (installers keep their own)
+  config.yaml            model per workload (docs/MODELS.md), reasoning effort, cheap auxiliary model
   README.md              what it does, install, first prompts
   .no-bundled-skills     keeps the profile's skill index focused on this agent; delete to opt back in
   shared-skills.txt      skills copied in from shared/skills/

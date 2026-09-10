@@ -143,3 +143,10 @@ subcommand prints its input shape with `--example`.
   `multiples.py sum-of-parts|cross-holdings`, and `macrosensitivity.py` in `debt-design`.
 - Three long artifact contracts moved into `references/` inside their briefs
   (statement analyst, special situations, capital structure) and are loaded on demand.
+
+## Models
+
+`config.yaml` pins `meta/muse-spark-1.3` for the orchestrator and, via `delegation.model`,
+for every specialist child; the single-profile form cannot give the reconciler its own
+writing model. The Bot team (`valuation-orchestrator` and members) can, and runs its
+reconciler on the writer tier. See `docs/MODELS.md`.

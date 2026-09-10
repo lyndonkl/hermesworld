@@ -30,10 +30,11 @@ ROOT = Path(__file__).resolve().parent.parent
 # (Artificial Analysis + OpenRouter prices as of 2026-09-09; re-check before relying on them).
 PRESETS = {
     "frontier": {"orchestrator": "anthropic/claude-fable-5.1", "strong": "anthropic/claude-opus-5",
-                 "fast": "anthropic/claude-sonnet-5"},
+                 "fast": "anthropic/claude-sonnet-5", "writer": "openai/gpt-5.6-sol"},
     "balanced": {"orchestrator": "meta/muse-spark-1.3", "strong": "meta/muse-spark-1.3",
-                 "fast": "google/gemini-3.7-flash"},
-    "budget":   {"orchestrator": "z-ai/glm-5.3", "strong": "z-ai/glm-5.3", "fast": "z-ai/glm-5.3-flash"},
+                 "fast": "google/gemini-3.7-flash", "writer": "google/gemini-3.7-flash"},
+    "budget":   {"orchestrator": "z-ai/glm-5.3", "strong": "z-ai/glm-5.3", "fast": "z-ai/glm-5.3-flash",
+                 "writer": "google/gemini-3.7-flash"},
 }
 
 
@@ -44,6 +45,7 @@ def main() -> int:
     ap.add_argument("--orchestrator", help="model id for tier 'orchestrator'")
     ap.add_argument("--strong", help="model id for tier 'strong'")
     ap.add_argument("--fast", help="model id for tier 'fast'")
+    ap.add_argument("--writer", help="model id for tier 'writer' (report writing)")
     ap.add_argument("--provider", help="provider to set alongside the model (default: keep existing)")
     ap.add_argument("--show", action="store_true", help="print each member's tier and current model")
     args = ap.parse_args()
@@ -55,7 +57,7 @@ def main() -> int:
     members = [team["orchestrator"], *team["members"]]
     home = Path(os.environ.get("HERMES_HOME") or Path.home() / ".hermes")
     tiers = dict(PRESETS[args.preset]) if args.preset else {}
-    for tier in ("orchestrator", "strong", "fast"):
+    for tier in ("orchestrator", "strong", "fast", "writer"):
         if getattr(args, tier):
             tiers[tier] = getattr(args, tier)
     if not args.show and not tiers:
@@ -65,7 +67,7 @@ def main() -> int:
     for m in members:
         cfg_path = home / "profiles" / m["name"] / "config.yaml"
         if not cfg_path.is_file():
-            print(f"  {m['name']:<30} tier={m['tier']:<6} not installed")
+            print(f"  {m['name']:<30} tier={m['tier']:<12} not installed")
             continue
         cfg = yaml.safe_load(cfg_path.read_text(encoding="utf-8")) or {}
         model = cfg.get("model")
@@ -74,7 +76,7 @@ def main() -> int:
         model = model or {}
         current = model.get("default", "")
         if args.show:
-            print(f"  {m['name']:<30} tier={m['tier']:<6} model={current or '(unset)'}")
+            print(f"  {m['name']:<30} tier={m['tier']:<12} model={current or '(unset)'}")
             continue
         wanted = tiers.get(m["tier"])
         if not wanted:
@@ -87,7 +89,7 @@ def main() -> int:
         cfg["model"] = model
         cfg_path.write_text(yaml.safe_dump(cfg, sort_keys=False), encoding="utf-8")
         changed += 1
-        print(f"  {m['name']:<30} tier={m['tier']:<6} -> {wanted}")
+        print(f"  {m['name']:<30} tier={m['tier']:<12} -> {wanted}")
     if not args.show:
         print(f"{changed} profile(s) updated")
     return 0

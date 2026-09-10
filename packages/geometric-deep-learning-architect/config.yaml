@@ -1,13 +1,27 @@
-# Behavioural defaults for the geometric-deep-learning-architect profile.
-# Deliberately no `model:` block — the installer's own credentials decide the
-# model. tools/install.sh seeds one from your root profile; or run
-# `hermes -p geometric-deep-learning-architect model` after install. Everything else here is optional and
-# preserved across `hermes profile update` (the installer never overwrites
-# config.yaml unless you pass --force-config).
+# Model and behavioural defaults for the geometric-deep-learning-architect profile.
+# Picks follow docs/MODELS.md (Artificial Analysis + OpenRouter, 2026-09-09).
+# For hard derivations switch to openai/gpt-6-astra (best Terminal-Bench v4 score; 8x the price).
+# Change the model any time with `hermes -p geometric-deep-learning-architect model`; this file is preserved across
+# `hermes profile update`.
+
+model:
+  provider: openrouter
+  default: meta/muse-spark-1.3
 
 agent:
   reasoning_effort: "high"
 
 skills:
-  creation_nudge_interval: 0     # this is a curated agent; do not nudge it to write new skills
+  creation_nudge_interval: 0     # curated agent; do not nudge it to write new skills
 
+# Housekeeping calls on a cheap model; nothing here needs reasoning.
+auxiliary:
+  compression:
+    provider: openrouter
+    model: z-ai/glm-5.3-flash
+  title_generation:
+    provider: openrouter
+    model: z-ai/glm-5.3-flash
+  background_review:
+    provider: openrouter
+    model: z-ai/glm-5.3-flash

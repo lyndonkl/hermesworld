@@ -68,17 +68,63 @@ GLM-5.3-Flash scores 1669 on GDPval-AA at $0.07 per million input tokens, which
 makes it hard to justify anything dearer for procedure work until a real run
 shows it failing.
 
+## A writing model, for reports
+
+Long-form prose is judged by people, not by pass rates, so the evidence here is the
+Arena (formerly LMArena) Creative Writing leaderboard, human pairwise votes, updated
+2026-09-02. Anthropic models top it, but the owner of this repo does not want Opus
+writing reports, so the picks below are the strongest non-Anthropic rows that are on
+OpenRouter:
+
+| Model (Arena name) | Arena score | Votes | OpenRouter id | $/1M in / out |
+|---|---|---|---|---|
+| gemini-3.7-flash-high | 1496 ± 18 | 1,203 | `google/gemini-3.7-flash` at `high` | 0.75 / 3.75 |
+| gemini-3.8-flash-high | 1495 ± 19 | 1,086 | `google/gemini-3.8-flash` at `high` | 0.75 / 3.75 |
+| gemini-3-pro / 3.1-pro-preview | 1483 / 1479 | 6,236 / 17,972 | `google/gemini-3.1-pro-preview` | 2 / 12 |
+| gpt-5.6-sol-xhigh | 1477 ± 10 | 4,670 | `openai/gpt-5.6-sol` at `xhigh` | 2 / 10 |
+| glm-5.3-max | 1467 ± 15 | 1,719 | `z-ai/glm-5.3` at `max` | 1.40 / 4.40 |
+| qwen3.8-max | 1466 ± 13 | 2,604 | `qwen/qwen3.8-max-0902` | 2 / 6 |
+| muse-spark | 1464 ± 14 | 1,949 | `meta/muse-spark-1.3` | 1.25 / 4.25 |
+| kimi-k3-max | 1460 ± 11 | 3,577 | `moonshotai/kimi-k3` | 3 / 15 |
+
+For reference, the Anthropic rows: claude-fable-5 1504, claude-opus-4-6-high 1500,
+claude-fable-5.1-max 1487, claude-opus-5-high 1475.
+
+**Writer tier = `google/gemini-3.7-flash` at `high`.** It ties for the best non-Anthropic
+writing score, it also holds the best AA-AnalystAgent result (60% pass^5 on spreadsheet and
+document work, which is what a strategy or valuation report is built from), and it costs
+a fifth of the alternatives. `openai/gpt-5.6-sol` at `xhigh` is the frontier alternative
+when the report needs more reasoning of its own: Intelligence Index 47 and GDPval-AA 1624.
+
+Where the writer tier is used:
+
+- `investment-reconciler` in the Bot team writes `REPORT.md`, so its profile runs the
+  writer model. Its reconciliation judgment is bounded by artifacts the strong-tier
+  specialists already produced.
+- `product-strategist` runs two models: the profile's own model does the research and
+  curation (Steps 1 to 7), and a `delegate_task` child on `delegation.model` writes the
+  report and runs the comprehension pass (Step 8). The parent verifies (Step 9).
+- The single-profile `valuation-suite` cannot single out its reconciler child; all children
+  share `delegation.model`. Use the team when the report's prose matters most.
+
 ## Presets
 
 `tools/team_models.py` applies these to the installed team; the same ids work
 for `hermes -p <name> model` on the standalone agents.
 
-| Tier | frontier | balanced (recommended start) | budget |
+| Tier | frontier | balanced (shipped default) | budget |
 |---|---|---|---|
 | `orchestrator` | `anthropic/claude-fable-5.1` at `xhigh` | `meta/muse-spark-1.3` at `high` | `z-ai/glm-5.3` at `high` |
 | `strong` | `anthropic/claude-opus-5` at `xhigh` | `meta/muse-spark-1.3` at `high` | `z-ai/glm-5.3` at `high` |
-| `fast` | `anthropic/claude-sonnet-5` at `high` | `google/gemini-3.7-flash` at `high` | `z-ai/glm-5.3-flash` at `high` |
+| `fast` | `anthropic/claude-sonnet-5` at `high` | `google/gemini-3.7-flash` at `medium` | `z-ai/glm-5.3-flash` at `high` |
+| `writer` | `openai/gpt-5.6-sol` at `xhigh` | `google/gemini-3.7-flash` at `high` | `google/gemini-3.7-flash` at `high` |
 | auxiliary | `z-ai/glm-5.3-flash` | `z-ai/glm-5.3-flash` | `z-ai/glm-5.3-flash` |
+
+The balanced column is what every package now ships in its `config.yaml` (provider
+`openrouter`), so a fresh install already runs on these. The team's picks live in
+`teams/valuation-team.yaml` under `models:`; the standalone agents' in their own
+`config.yaml`. Installers keep their `config.yaml` across updates, so a later change of
+mind is made on the installed profile, not by re-installing.
 
 ```bash
 python3 tools/team_models.py valuation --preset balanced          # after tools/install.sh --team valuation
@@ -94,7 +140,7 @@ Per-profile picks for the standalone agents, same reasoning:
 |---|---|---|
 | `valuation-suite` | `meta/muse-spark-1.3`, plus `delegation.model: meta/muse-spark-1.3` | One model for orchestrator and children; frontier alternative `anthropic/claude-fable-5.1` + `delegation.model: anthropic/claude-opus-5` |
 | `superforecaster` | `meta/muse-spark-1.3` | Reasoning plus many web searches; frontier `anthropic/claude-fable-5.1` |
-| `product-strategist` | `anthropic/claude-opus-5` | Long-form prose for a lay reader is where the Claude family leads the pairwise evaluations |
+| `product-strategist` | `meta/muse-spark-1.3` for research, `delegation.model: google/gemini-3.7-flash` for the report | Reasoning and news curation first; the writing model drafts the report as a delegated child |
 | `cognitive-design-architect` | `meta/muse-spark-1.3` | Design reasoning and D3 code; frontier `openai/gpt-6-astra` for the coding end |
 | `geometric-deep-learning-architect` | `openai/gpt-6-astra` at `high`, or `meta/muse-spark-1.3` to start | Maths plus PyTorch; GPT-6 Astra leads Terminal-Bench v4 |
 
@@ -116,3 +162,18 @@ generated team configs use `high` for the strong and orchestrator tiers and
    reasoning.
 4. Re-check the leaderboards before committing to a long project. The rows
    above were retrieved on 2026-09-09.
+
+## Memory providers, briefly
+
+Only one external memory provider can be active per profile (`memory.provider`; the
+memory manager refuses a second). Different profiles may use different providers.
+
+| | Honcho | Mem0 |
+|---|---|---|
+| What it adds | Cross-session user modelling: a shared user peer across profiles, one AI peer per profile, LLM "dialectic" reasoning about the user, semantic search, session context | Automatic fact extraction from conversations, deduplication, semantic search with optional reranking |
+| Cloud cost (2026-09-09) | Ingestion $2.00 per 1M tokens; reasoning per query $0.001 (minimal) to $0.50 (max); `context()` unlimited; $1,000 startup credits programme | Hobby free: 10,000 adds and 1,000 retrievals a month; Starter $19/month; Pro $249/month; Enterprise custom |
+| Self-hosted | Free, AGPL-3.0; needs Postgres with pgvector and an LLM key for reasoning | Free, Apache-2.0; needs an LLM key and a vector store such as Qdrant |
+| Config location | `memory.provider: honcho` in the profile's `config.yaml`; `honcho.json` in the profile dir; key in the profile's `.env` | `memory.provider: mem0`; `mem0.json` in the profile dir; `MEM0_API_KEY` in `.env` |
+| Enable | `hermes -p <name> memory setup` | `hermes -p <name> memory setup` |
+
+Nothing memory-related ships in these packages; memory is user-owned by design.

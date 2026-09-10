@@ -125,3 +125,11 @@ packages in this repository and are synced from `shared/skills/`.
 - No model tier is pinned. The Claude agent ran on `opus`; here the installer's own model applies.
 - Em dashes used as separators in the report skeleton became colons and parentheses, in line with
   the agent's own style rule.
+
+## Models
+
+Two models, both on OpenRouter and both changeable in `config.yaml`: `meta/muse-spark-1.3`
+does the research, curation and analysis; a delegated child on `google/gemini-3.7-flash`
+(`delegation.model`) writes the report and runs the comprehension pass, because that model
+leads the non-Anthropic rows of the human creative-writing leaderboard. Rationale and
+alternatives: `docs/MODELS.md`.

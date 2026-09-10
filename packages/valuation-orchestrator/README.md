@@ -29,10 +29,12 @@ the same fourteen stage briefs, so improving a specialist improves both.
 | `investment-analyst` | Projects and acquisitions: NPV, control, synergy, price | strong |
 | `real-options-analyst` | Genuine optionality, priced; look-alikes rejected | strong |
 | `valuation-critic` | Adversarial review; findings, never edits | strong |
-| `investment-reconciler` | Verdict, range, margin of safety, the report | strong |
+| `investment-reconciler` | Verdict, range, margin of safety, the report | writer |
 
-Tiers are the model classes the Claude Code version used (opus and sonnet). Hermes does
-not pin models in these packages; apply your own per tier after install.
+Tiers map to OpenRouter models pinned in each member's `config.yaml`: orchestrator and
+strong on `meta/muse-spark-1.3`, fast and writer on `google/gemini-3.7-flash`, housekeeping
+on `z-ai/glm-5.3-flash`. Change them all at once with `tools/team_models.py` or one at a time
+with `hermes -p <member> model`; the reasoning is in `docs/MODELS.md`.
 
 ## How it works
 

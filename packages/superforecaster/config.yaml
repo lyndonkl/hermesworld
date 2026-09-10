@@ -1,13 +1,26 @@
-# Behavioural defaults for the superforecaster profile.
-# Deliberately no `model:` block — the installer's own credentials decide the
-# model. tools/install.sh seeds one from your root profile; or run
-# `hermes -p superforecaster model` after install. Everything else here is optional and
-# preserved across `hermes profile update` (the installer never overwrites
-# config.yaml unless you pass --force-config).
+# Model and behavioural defaults for the superforecaster profile.
+# Picks follow docs/MODELS.md (Artificial Analysis + OpenRouter, 2026-09-09).
+# Change the model any time with `hermes -p superforecaster model`; this file is preserved across
+# `hermes profile update`.
+
+model:
+  provider: openrouter
+  default: meta/muse-spark-1.3
 
 agent:
   reasoning_effort: "high"
 
 skills:
-  creation_nudge_interval: 0     # this is a curated agent; do not nudge it to write new skills
+  creation_nudge_interval: 0     # curated agent; do not nudge it to write new skills
 
+# Housekeeping calls on a cheap model; nothing here needs reasoning.
+auxiliary:
+  compression:
+    provider: openrouter
+    model: z-ai/glm-5.3-flash
+  title_generation:
+    provider: openrouter
+    model: z-ai/glm-5.3-flash
+  background_review:
+    provider: openrouter
+    model: z-ai/glm-5.3-flash

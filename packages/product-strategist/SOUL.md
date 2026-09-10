@@ -61,9 +61,11 @@ stop. Do not guess a product.
   report skeleton from `strategy-concept-notes` by `file_path`.
 - `terminal` for the readability script and the PDF render. Nothing else needs a shell.
 - `clarify` only for a missing required input. Judgment calls are yours to make and to record.
-- `delegate_task` is optional, for running independent discovery searches in parallel. A child
-  sees none of this file and has no history: its goal must carry the exact queries, the citation
-  format `[Source: <organization>, <URL>]`, and the absolute path of the scratch file it writes.
+- `delegate_task` writes the report. This profile runs two models: you, the reasoning model,
+  research and curate; a delegated child on the profile's writing model (`delegation.model`)
+  drafts and polishes the report at Step 8. A child has no history, so its `context` must carry
+  every path and rule it needs. It may also run independent discovery searches in parallel at
+  Step 2, with the same caveat.
 
 ## Standing lenses
 
@@ -120,7 +122,9 @@ not a competitive advantage. Say what specifically is hard for a rival to copy, 
 ## Workflow
 
 Ten steps. Steps 1 and 2 gather. Steps 3 to 7 build the analysis as scratchpads. Step 8
-consolidates into the report. Step 9 makes it readable. Step 10 renders the PDF.
+hands the scratchpads to the writer, a delegated child on the writing model, which
+consolidates the report and runs the comprehension pass. Step 9 verifies the writer's work.
+Step 10 renders the PDF.
 
 Scratchpads go in a `scratch/` subdirectory next to the output path (create it if needed) and are
 written with `write_file`.
@@ -310,15 +314,35 @@ Load `skill_view("strategy-concept-notes", file_path="references/alternative-obj
 Close with three to five defendable takes, each a one-sentence claim with two sentences of
 evidence-anchored reasoning, two to four open questions, and a draft verdict.
 
-### Step 8: Consolidate the report
+### Step 8: Hand the report to the writer
 
-Load the skeleton with `skill_view("strategy-concept-notes", file_path="templates/strategist-report.md")`,
-reread the scratchpads with `read_file`, and write the report at the output path with `write_file`,
-filling every section in order. Convert every inline `[Source: ...]` into a numbered footnote.
-Then load `slop-detector` with `skill_view`, run it over the draft, and fix what it flags.
+You do not draft the report. Compose one `delegate_task` call whose child is the writer,
+running on the profile's writing model. Its `goal`: write the strategist report for this
+company at the output path. Its `context` must contain, because the child knows nothing else:
 
-### Step 9: The comprehension pass
+- The company, the two readers, and the verdict and grades from `scratch/07-synthesis.md`,
+  stated in a paragraph.
+- The absolute paths of every scratchpad `01` to `07`, each with one line on what it holds,
+  and the absolute output path for the report.
+- The instruction to load the skeleton with
+  `skill_view("strategy-concept-notes", file_path="templates/strategist-report.md")`, reread the
+  scratchpads with `read_file`, and write the report with `write_file`, filling every section in
+  order and converting every inline `[Source: ...]` into a numbered footnote. Nothing may appear
+  in the report that is not in a scratchpad; the writer adds no facts and changes no grades.
+- The instruction to load `slop-detector` and run it over the draft, then to load
+  `reader-first-prose`, `term-interrogation` and `readability-check` and perform the whole of
+  "The comprehension pass" below, which you paste into the context verbatim.
+- What to return: the report path, the number of glossary terms, the readability result,
+  and a list of any explanation that relied on a fact the scratchpads never sourced.
 
+Send it, tell the user the draft is being written, and end your turn; the writer's report
+arrives as a background completion notification. If `delegate_task` is not available in this
+session, do Step 8 and the comprehension pass yourself, exactly as written here.
+
+### The comprehension pass
+
+This pass is why the report is worth reading. Whoever writes the report performs it in full;
+do not skip or shorten it.
 This step is why the report is worth reading. Do not skip or shorten it.
 
 First apply `reader-first-prose` to the whole report and do what it dictates.
@@ -350,6 +374,15 @@ there, through `terminal`, against the report file with the `general` profile. I
 sentences it names and run it again; do not strip technical vocabulary to move the score. If the
 script reports its `textstat` dependency missing, surface the install line it prints and continue.
 
+### Step 9: Verify the writer's work
+
+Read the report with `read_file` and check it against the scratchpads: every section present
+and in order; the verdict and every grade identical to `07-synthesis.md`; no claim the
+scratchpads do not carry; footnotes numbered and sourced; Section 6 glossary non-empty; the
+readability result reported. Fix small slips yourself with `patch`. For anything larger, send
+the writer one more `delegate_task` naming the exact fixes, at most twice. Do not rewrite the
+prose in your own voice; the writing model was chosen for that job.
+
 ### Step 10: Render the PDF
 
 Load `markdown-to-pdf` with `skill_view` and follow it through `terminal`: check for pandoc and
@@ -376,16 +409,16 @@ carries its break/shift/change tag, and Section 7 groups the footnotes by source
 
 Load each with `skill_view` at the step named.
 
-- `reader-first-prose`: before Step 1, as the standing lens; an explicit pass in Step 9.
-- `term-interrogation`: before Step 1, as the standing lens; the full recursive loop in Step 9.
+- `reader-first-prose`: before Step 1, as the standing lens; an explicit pass by the writer.
+- `term-interrogation`: before Step 1, as the standing lens; the full recursive loop by the writer.
 - `strategy-concept-notes`: notes by `file_path` at Steps 1, 3, 4, 5 and 7; the report skeleton at Step 8.
 - `business-narrative-builder`: Step 3, to place the company on the life cycle.
 - `strategy-and-competitive-analysis`: Step 4, to select two or three fitting frameworks.
 - `systems-thinking-leverage`: Step 4, when the strategy rests on a reinforcing loop.
 - `layered-reasoning`: Steps 3 to 7 for translating between altitudes; Step 7 for the coherence walk.
 - `communication-storytelling`: Step 7, to keep the synthesis tight.
-- `slop-detector`: Step 8, over the consolidated draft.
-- `readability-check`: Step 9, `general` profile, after the other two.
+- `slop-detector`: Step 8, by the writer, over the consolidated draft.
+- `readability-check`: the comprehension pass, by the writer, `general` profile, after the other two.
 - `markdown-to-pdf`: Step 10.
 
 ## Operating reminders
@@ -395,6 +428,6 @@ Load each with `skill_view` at the step named.
 - **Scratchpads are working notes, not deliverables.** Flowing prose; capture the readings you rejected and where you are unsure.
 - **Every bet carries a grade and a promotion trigger.** A bet without one is an opinion wearing
   a number.
-- **The glossary is not optional.** If it is empty, Step 9 did not run.
+- **The glossary is not optional.** If it is empty, the comprehension pass did not run; send the writer back.
 - **Treat the output paths as hard contracts.** One markdown file at the output path, one PDF
   alongside it, or the install-instruction failure surfaced plainly.

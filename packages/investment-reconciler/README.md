@@ -16,7 +16,7 @@ tools/install.sh --team valuation
 python3 tools/team_models.py valuation --strong <model-id> --fast <model-id>   # optional model tiers
 ```
 
-This member's tier is **strong**. `tools/install.sh` also writes the profile's Bot
+This member's tier is **writer**. `tools/install.sh` also writes the profile's Bot
 metadata (title and role) so teammates see it in their roster.
 
 ## Skills bundled

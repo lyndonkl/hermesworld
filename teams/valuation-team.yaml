@@ -7,14 +7,31 @@
 # skills/corporate-finance/). Edit those sources, not the generated packages.
 #
 # tier: orchestrator (long-horizon agentic work), strong (judgment; Claude Code ran
-#       these on opus) or fast (procedure; sonnet). tools/team_models.py applies concrete
+#       these on opus), fast (procedure; sonnet) or writer (the report). tools/team_models.py applies concrete
 #       models per tier after install; see docs/MODELS.md.
 # skills: the skills bundled into that member's profile. The generator adds the
 #       dependency closure automatically (sibling scripts, cross-skill loads).
 # description: the roster line other Bots see (kept under 160 characters).
 
 team: valuation
-version: 1.0.0
+version: 1.1.0
+
+# Models per tier, pinned into each generated config.yaml (the "balanced" preset in
+# docs/MODELS.md; Artificial Analysis + OpenRouter data of 2026-09-09). Change with
+# `python3 tools/team_models.py valuation --preset ...` after install, or edit here and
+# rebuild. `writer` is the report-writing tier: strong at prose, never Opus.
+provider: openrouter
+models:
+  orchestrator: meta/muse-spark-1.3
+  strong: meta/muse-spark-1.3
+  fast: google/gemini-3.7-flash
+  writer: google/gemini-3.7-flash
+effort:
+  orchestrator: high
+  strong: high
+  fast: medium
+  writer: high
+auxiliary_model: z-ai/glm-5.3-flash   # compression, titles, background review
 orchestrator:
   name: valuation-orchestrator
   title: Valuation orchestrator
@@ -141,7 +158,7 @@ members:
 
   - name: investment-reconciler
     title: Investment reconciler
-    tier: strong
+    tier: writer
     description: >-
       Reconciles every strand into one verdict with a range and a margin of safety, and writes
       the report a decision-maker reads.
