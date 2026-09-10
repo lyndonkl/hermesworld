@@ -105,7 +105,7 @@ and `tools/local_llm.sh --status|--stop`.
 
 | Profiles | Observation | Effect |
 |---|---|---|
-| `valuation-orchestrator`, `valuation-suite`, `superforecaster`, `product-strategist`, `cognitive-design-architect`, `geometric-deep-learning-architect` | directional (Honcho default): both peers observe themselves and each other | Full model of you; the agent also builds a self-model from its replies |
+| `valuation-orchestrator`, `superforecaster`, `product-strategist`, `cognitive-design-architect`, `geometric-deep-learning-architect` | directional (Honcho default): both peers observe themselves and each other | Full model of you; the agent also builds a self-model from its replies |
 | The 14 specialist Bots | strong persona: the AI peer observes you but not itself | Their SOUL is the persona; they should not drift by re-modelling themselves from their own stage reports |
 
 Change any block in `~/.hermes/honcho.json`; the keys are documented in the Hermes

@@ -2,9 +2,8 @@
 # desktop's Bot Mode through `message_agent`.
 #
 # tools/build_team.py generates packages/<member>/ for every member from the
-# canonical sources in packages/valuation-suite/ (the stage briefs under
-# skills/valuation-specialists/ and the finance skills under
-# skills/corporate-finance/). Edit those sources, not the generated packages.
+# canonical sources beside this file: skills/valuation-specialists/ (the stage
+# briefs) and skills/corporate-finance/. Edit those, not the generated packages.
 #
 # tier: orchestrator (long-horizon agentic work), strong (judgment; Claude Code ran
 #       these on opus), fast (procedure; sonnet) or writer (the report). tools/team_models.py applies concrete

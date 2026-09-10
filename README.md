@@ -16,12 +16,11 @@ rules are written down in [AGENTS.md](AGENTS.md) and enforced by
 
 | Package | What it does | Skills |
 |---|---|---|
-| [`valuation-suite`](packages/valuation-suite/) | Company valuation and corporate-finance analysis. One profile: an orchestrator that classifies the company, runs 14 specialist stages through `delegate_task`, and reconciles a verdict. Six modes: valuation, corporate-finance, acquisition, project, ipo, restructuring. | 35 skills: 19 finance skills (11 with tested stdlib-Python engines), 14 stage briefs, the Damodaran playbooks, readability check |
 | [`product-strategist`](packages/product-strategist/) | Reverse-engineers a real product's vision, strategy, and tactics from public material, grades every claim by evidence, and writes it for a reader with no background. | 11 skills: strategy and narrative methods, Damodaran strategy notes, layered reasoning, prose checks, PDF rendering |
 | [`superforecaster`](packages/superforecaster/) | Calibrated probability forecasts: reference class first, Fermi decomposition, Bayesian updating, premortem, bias check. | 8 skills: 5 forecasting methods, voice and prose checks |
 | [`cognitive-design-architect`](packages/cognitive-design-architect/) | Applies cognitive science to interfaces, data visualizations, educational content, and presentations, and explains why each choice works. | 8 skills: 6 design methods, prose checks |
 | [`geometric-deep-learning-architect`](packages/geometric-deep-learning-architect/) | Symmetry discovery, group identification, and equivariant neural-network design and audit. | 7 skills: 5 geometric deep learning methods, prose checks |
-| [`valuation-orchestrator`](packages/valuation-orchestrator/) + 14 specialist packages | The same valuation analysis as a **Bot team**: fifteen profiles, one per Claude agent, coordinated in the desktop's Bot Mode through `message_agent`. Each specialist keeps its own identity, memory, skills and model tier. Desktop only. | generated from the suite's briefs and finance skills |
+| [`valuation-orchestrator`](packages/valuation-orchestrator/) and 14 specialist Bots | Company valuation and corporate-finance analysis as a **team of fifteen agents**: the orchestrator fixes the mandate, sends each stage to the right specialist, checks every gate, and hands over the verdict. Six modes: valuation, corporate-finance, acquisition, project, ipo, restructuring. Each specialist also works on its own. | 19 finance skills with tested Python engines, 14 stage briefs, the Damodaran playbooks |
 
 ## Prerequisites
 
@@ -31,7 +30,12 @@ rules are written down in [AGENTS.md](AGENTS.md) and enforced by
   first: these packages reuse whatever model and credentials you already have.
 - `git`, and `python3` with PyYAML (`python3 -m pip install pyyaml`). PyYAML is
   only needed by the repo tooling, not by the agents.
-- Access to this repository (it is private at the moment).
+- An OpenRouter API key already set up in Hermes (the packages pin OpenRouter
+  models; change them with `hermes -p <name> model` if you use another provider).
+- For the optional memory stack only: Docker Desktop (the script starts it), and
+  [`uv`](https://docs.astral.sh/uv/) (the script uses it to install the Honcho CLI
+  and, on Apple Silicon, the local model server vllm-mlx). On other hardware you
+  run your own OpenAI-compatible model server and point the script at it.
 
 ## Quick start
 
@@ -39,7 +43,7 @@ rules are written down in [AGENTS.md](AGENTS.md) and enforced by
 git clone https://github.com/lyndonkl/hermesworld.git
 cd hermesworld
 tools/install.sh superforecaster       # one standalone agent
-tools/install.sh --team valuation      # the fifteen-Bot valuation team (desktop Bot Mode)
+tools/install.sh --team valuation      # the fifteen-agent valuation team
 tools/install.sh --all                 # everything
 ```
 
@@ -61,32 +65,59 @@ hermes -p superforecaster skills list  # 8 local skills, all enabled
 hermes profile show superforecaster    # SOUL.md: exists, Distribution: superforecaster@1.0.0
 ```
 
-Use:
+Use a standalone agent, in a terminal or in the desktop app:
 
 ```bash
 superforecaster chat                   # the alias created by --alias
-hermes -p valuation-suite chat         # the same thing without an alias
+hermes -p product-strategist chat      # the same thing without an alias
 ```
 
-In the desktop app every installed profile appears in the profile rail and, with
-Bot Mode on (Settings → Plugins → Bots), as a Bot in the roster: open its chat,
-give it a title and avatar, seat it in a group chat, or `@mention` it from
-another Bot's chat. Nothing extra to configure; a Bot is a profile.
+In the desktop app every installed agent appears in the profile list on the left.
+With **Bot Mode** switched on (Settings → Plugins → Bots) they also appear as Bots
+with a title and avatar, and you can `@mention` one from another's chat or seat
+several in a group chat.
 
-The valuation **team** needs Bot Mode: open `valuation-orchestrator` from the Bots
-roster and give it a company. It sends each stage to the right specialist Bot with
-`message_agent`, which exists only in Bot Chats, and results come back between
-turns. The team ships on the "balanced" model preset; switch presets any time:
+Start the valuation team:
 
 ```bash
-python3 tools/team_models.py valuation --preset frontier    # or balanced | budget, or --show
+valuation                              # terminal: opens the orchestrator's Bot Chat
+valuation --tui                        # the same in the Ink terminal UI
 ```
 
-See [packages/valuation-orchestrator/README.md](packages/valuation-orchestrator/README.md),
-and [docs/MODELS.md](docs/MODELS.md) for which model fits which agent and why.
+or, in the desktop app, switch Bot Mode on and click **valuation-orchestrator** in
+the Bots list. Give it a company and a question, for example "Value Costco as of
+last Friday's close, in USD." It asks what it cannot infer, then sends each stage
+to the right specialist; the answers come back into its chat as notifications, so
+you will see it dispatch, pause, and continue. Open any specialist's chat to watch
+its stage. A specialist can also be asked directly, for example
+`cost-of-capital-analyst chat` and "estimate Costco's cost of capital"; it will
+ask for the inputs it needs.
 
-First prompts to try are in each package's README, for example
-[packages/valuation-suite/README.md](packages/valuation-suite/README.md).
+## Words used here
+
+- **Profile.** One installed agent: its personality file (`SOUL.md`), its skills,
+  its memory, its model, and its own API key file. Each has a name and a command,
+  and lives in `~/.hermes/profiles/<name>/`.
+- **Bot.** What the desktop app calls a profile when Bot Mode is on. Same thing.
+  Installing a team marks its profiles as Bots, so the desktop lists them and
+  teammate messaging works; there is nothing to configure.
+- **Bot Chat.** Every Bot has one permanent main conversation with that name. It
+  is the only conversation in which a Bot can message other Bots, and it is where
+  teammates' messages arrive. In the desktop you are in it as soon as you click a
+  Bot. In a terminal you open it by name, which is all the `valuation` command
+  does: `hermes -p valuation-orchestrator chat -c "Bot Chat" --create-if-missing`.
+  A plain `valuation-orchestrator chat` opens an ordinary conversation instead, and
+  the orchestrator will tell you it cannot reach its team from there.
+- **Teammate message.** One Bot writing to another, like texting a colleague. The
+  sender carries on; the other Bot does the work in its own Bot Chat, and its reply
+  arrives back in the sender's chat as a notification when it is done. Hermes
+  delivers these on your machine; the desktop app can also relay them to Bots on
+  other machines, which this repo does not use.
+- **Orchestrator, specialist, job, workspace.** The orchestrator owns the
+  conversation with you and the run's folder on disk (the workspace, one numbered
+  sub-folder per stage). A job is the short message it sends a specialist: what to
+  do, which files to read and write, the constraints, the currency and date. A
+  specialist is a Bot that does one stage and writes only its own files.
 
 Optional, persistent memory across all profiles: a self-hosted Honcho stack whose
 LLM work runs on a local model. One command, safe to re-run at any time; it checks
@@ -135,25 +166,11 @@ hermes skills install lyndonkl/hermesworld/packages/superforecaster/skills/forec
 | `product-strategist` cannot render a PDF | Install pandoc and a LaTeX engine (`brew install pandoc basictex` on macOS); markdown output is unaffected |
 | A profile name collides with a command on your PATH | `hermes profile install ./packages/<name> --name <other-name>` |
 
-## Two forms of the valuation analysis
-
-| | `valuation-suite` (one profile) | Bot team (fifteen profiles) |
-|---|---|---|
-| Works in | CLI, desktop, gateways | Desktop Bot Chats only |
-| Specialists are | stage briefs passed to anonymous `delegate_task` children | named Bots with their own SOUL, memory, skills, model tier |
-| Dispatch | one call, several parallel tasks, structured results | one `message_agent` job per Bot, replies as notifications |
-| Source of truth | the briefs and finance skills in `valuation-suite` | generated from the same files by `tools/build_team.py` |
-
-## Documentation
-
-- [AGENTS.md](AGENTS.md): the rules every package and skill follows, and the porting checklist.
-- [docs/MODELS.md](docs/MODELS.md): where a model can be set, what each agent demands, the benchmark evidence, presets.
-- [docs/MEMORY.md](docs/MEMORY.md): self-hosted Honcho memory on a local model, what each profile learns, limits.
-- Each package's `README.md`: what it does, first prompts, its skills.
-
 ## What is in a package
 
 ```
+teams/valuation/         the team's source of truth: team.yaml plus the 19 finance skills
+                         and 14 stage briefs; tools/build_team.py generates the 15 packages
 packages/<name>/
   distribution.yaml      manifest (name, version, description, author, license)
   SOUL.md                the agent: identity and standing operating procedure

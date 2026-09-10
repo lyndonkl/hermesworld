@@ -31,7 +31,7 @@ What `wire` does
   * runs `hermes honcho sync` to create the peers on the server
 
 Nothing here touches your default ~/.hermes profile unless you pass --include-default.
-Reads: teams/*-team.yaml and packages/*/ to know which profiles are ours.
+Reads: teams/*/team.yaml and packages/*/ to know which profiles are ours.
 """
 from __future__ import annotations
 
@@ -66,7 +66,7 @@ STRONG_PERSONA = {"user": {"observeMe": True, "observeOthers": True},
 def our_profiles() -> list[dict]:
     """Every installable package: name, kind (orchestrator|member|standalone)."""
     out, orchestrators = [], set()
-    for manifest in sorted((ROOT / "teams").glob("*-team.yaml")):
+    for manifest in sorted((ROOT / "teams").glob("*/team.yaml")):
         team = yaml.safe_load(manifest.read_text(encoding="utf-8"))
         orchestrators.add(team["orchestrator"]["name"])
     for pkg in sorted(p for p in (ROOT / "packages").iterdir() if (p / "distribution.yaml").is_file()):
@@ -169,15 +169,17 @@ def write_env(args) -> bool:
     HONCHO_DIR.mkdir(parents=True, exist_ok=True)
     env_path = HONCHO_DIR / ".env"
     rendered = render_env(args)
+    marker = "# --- kept from the previous .env ---"
     if env_path.is_file():
+        existing = env_path.read_text(encoding="utf-8")
+        managed_before = existing.split(marker)[0]
+        if managed_before == rendered:
+            return False  # nothing we manage changed; leave the file (and the stack) alone
         ours = {l.split("=", 1)[0] for l in rendered.splitlines() if "=" in l and not l.startswith("#")}
-        extra = [l for l in env_path.read_text(encoding="utf-8").splitlines()
-                 if "=" in l and not l.startswith("#") and l.split("=", 1)[0] not in ours
-                 and not l.startswith("# ---")]
+        extra = [l for l in existing.splitlines()
+                 if "=" in l and not l.startswith("#") and l.split("=", 1)[0] not in ours]
         if extra:
-            rendered += "\n# --- kept from the previous .env ---\n" + "\n".join(extra) + "\n"
-        if env_path.read_text(encoding="utf-8") == rendered:
-            return False
+            rendered += "\n" + marker + "\n" + "\n".join(extra) + "\n"
     env_path.write_text(rendered, encoding="utf-8")
     print(f"  wrote {env_path}")
     return True

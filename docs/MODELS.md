@@ -23,11 +23,8 @@ that agent is using.
 
 Consequences for this repo:
 
-- The **single-profile `valuation-suite`** can use exactly two models: the
-  orchestrator's own, and one `delegation.model` shared by all fourteen
-  specialist children.
-- The **fifteen-profile Bot team** can use a model per specialist. That is the
-  main practical reason to run the team.
+- The **fifteen-profile valuation team** uses a model per specialist, set in each
+  member's `config.yaml` from the tier map in `teams/valuation/team.yaml`.
 - Skills that need a different model must move to a different profile or to a
   delegated child; there is no other mechanism.
 
@@ -35,7 +32,7 @@ Consequences for this repo:
 
 | Workload | Agents | What matters | Benchmarks that proxy it |
 |---|---|---|---|
-| Long-horizon orchestration | `valuation-orchestrator`, `valuation-suite` | Multi-turn state tracking, tool discipline, reading artifacts, not drifting over 20+ turns | AA-Briefcase (long-horizon knowledge work), GDPval-AA v2 (shell + web agent loop) |
+| Long-horizon orchestration | `valuation-orchestrator` | Multi-turn state tracking, tool discipline, reading artifacts, not drifting over 20+ turns | AA-Briefcase (long-horizon knowledge work), GDPval-AA v2 (shell + web agent loop) |
 | Judgment specialists | `company-diagnostician`, `business-narrative-analyst`, `intrinsic-valuation-analyst`, `special-situations-analyst`, `capital-structure-analyst`, `investment-analyst`, `real-options-analyst`, `valuation-critic`, `investment-reconciler`; standalone `superforecaster`, `product-strategist` | Domain reasoning over long references (the playbooks are ~100 KB), defensible choices of inputs, adversarial review, prose quality | Intelligence Index, GDPval-AA v2 (finance occupations included), AA-LCR long-context reasoning |
 | Procedure specialists | `financial-data-collector`, `financial-statement-analyst`, `cost-of-capital-analyst`, `relative-valuation-analyst`, `payout-policy-analyst` | Follow a fixed procedure, run the bundled Python engines correctly, source numbers with citations | AA-AnalystAgent (spreadsheet/document quantitative work, pass^5), Terminal-Bench, GDPval-AA v2 |
 | Code-heavy design | `geometric-deep-learning-architect`, `cognitive-design-architect` | Maths and PyTorch or D3 code alongside explanation | Terminal-Bench v4.0, Intelligence Index |
@@ -104,8 +101,6 @@ Where the writer tier is used:
 - `product-strategist` runs two models: the profile's own model does the research and
   curation (Steps 1 to 7), and a `delegate_task` child on `delegation.model` writes the
   report and runs the comprehension pass (Step 8). The parent verifies (Step 9).
-- The single-profile `valuation-suite` cannot single out its reconciler child; all children
-  share `delegation.model`. Use the team when the report's prose matters most.
 
 ## Presets
 
@@ -138,7 +133,6 @@ Per-profile picks for the standalone agents, same reasoning:
 
 | Profile | Start with | Why |
 |---|---|---|
-| `valuation-suite` | `meta/muse-spark-1.3`, plus `delegation.model: meta/muse-spark-1.3` | One model for orchestrator and children; frontier alternative `anthropic/claude-fable-5.1` + `delegation.model: anthropic/claude-opus-5` |
 | `superforecaster` | `meta/muse-spark-1.3` | Reasoning plus many web searches; frontier `anthropic/claude-fable-5.1` |
 | `product-strategist` | `meta/muse-spark-1.3` for research, `delegation.model: google/gemini-3.7-flash` for the report | Reasoning and news curation first; the writing model drafts the report as a delegated child |
 | `cognitive-design-architect` | `meta/muse-spark-1.3` | Design reasoning and D3 code; frontier `openai/gpt-6-astra` for the coding end |

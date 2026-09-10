@@ -1,2 +1,0 @@
-This profile opted out of bundled-skill seeding so its skill index stays focused on the agent.
-Delete this file to let `hermes update` seed the bundled Hermes skills into this profile.

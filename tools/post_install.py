@@ -9,6 +9,8 @@
    root profile's .env when missing. Named profiles are credential-isolated (their
    HERMES_HOME has its own .env), so without this a fresh profile gets HTTP 401
    from the provider even though the root profile works.
+1c. Restores `memory.provider: honcho` when the profile was wired by tools/memory_setup.py
+   before a reinstall (`hermes profile install --force` resets config.yaml).
 2. For Bot-team members (packages that carry a bot.yaml), writes the profile's Bot
    metadata into profile.yaml: `description` and `ui_meta.hermes-bots.title`.
    Hermes reads exactly these two fields to (a) treat the profile as a Bot and
@@ -85,6 +87,31 @@ def seed_provider_key(profile: Path, root_env: Path) -> None:
     print(f"  seeded {', '.join(to_copy)} into {env_path} from the root profile")
 
 
+def keep_memory_wiring(profile: Path) -> None:
+    """`hermes profile install --force` resets config.yaml. If tools/memory_setup.py had wired
+    this profile to Honcho (a host block exists in ~/.hermes/honcho.json), put the provider back."""
+    import json
+    honcho = profile.parent.parent / "honcho.json"
+    if not honcho.is_file():
+        return
+    try:
+        hosts = (json.loads(honcho.read_text(encoding="utf-8")) or {}).get("hosts", {})
+    except Exception:
+        return
+    sanitized = "".join(c if c.isalnum() or c in "_-" else "_" for c in profile.name).strip("_")
+    if f"hermes_{sanitized}" not in hosts:
+        return
+    cfg_path = profile / "config.yaml"
+    cfg = (yaml.safe_load(cfg_path.read_text(encoding="utf-8")) if cfg_path.is_file() else {}) or {}
+    mem = cfg.get("memory") or {}
+    if mem.get("provider") == "honcho":
+        return
+    mem["provider"] = "honcho"
+    cfg["memory"] = mem
+    cfg_path.write_text(yaml.safe_dump(cfg, sort_keys=False), encoding="utf-8")
+    print("  memory.provider: honcho restored (profile was wired before this reinstall)")
+
+
 def write_bot_meta(pkg: Path, profile: Path) -> None:
     bot_path = pkg / "bot.yaml"
     if not bot_path.is_file():
@@ -124,6 +151,7 @@ def main(argv: list[str]) -> int:
         return 1
     seed_model(profile, root_cfg)
     seed_provider_key(profile, root_cfg.parent / ".env")
+    keep_memory_wiring(profile)
     write_bot_meta(pkg, profile)
     return 0
 

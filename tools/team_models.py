@@ -50,7 +50,7 @@ def main() -> int:
     ap.add_argument("--show", action="store_true", help="print each member's tier and current model")
     args = ap.parse_args()
 
-    manifest = ROOT / "teams" / f"{args.team}-team.yaml"
+    manifest = ROOT / "teams" / args.team / "team.yaml"
     if not manifest.is_file():
         sys.exit(f"no manifest at {manifest}")
     team = yaml.safe_load(manifest.read_text(encoding="utf-8"))

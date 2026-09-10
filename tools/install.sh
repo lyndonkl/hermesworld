@@ -25,9 +25,10 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 HERMES_HOME_ROOT="${HERMES_HOME:-$HOME/.hermes}"
 ALIAS="--alias"
 PKGS=()
+TEAMS=()
 
 team_members() {  # print orchestrator + member names of teams/<name>-team.yaml
-  python3 - "$ROOT/teams/$1-team.yaml" <<'PY'
+  python3 - "$ROOT/teams/$1/team.yaml" <<'PY'
 import sys, yaml
 t = yaml.safe_load(open(sys.argv[1]))
 print(t["orchestrator"]["name"])
@@ -43,7 +44,8 @@ while [ $i -lt ${#args[@]} ]; do
     --all) for d in "$ROOT"/packages/*/; do PKGS+=("$(basename "$d")"); done ;;
     --team)
       i=$((i+1)); team="${args[$i]:-}"
-      [ -f "$ROOT/teams/$team-team.yaml" ] || { echo "no team manifest teams/$team-team.yaml" >&2; exit 2; }
+      [ -f "$ROOT/teams/$team/team.yaml" ] || { echo "no team manifest teams/$team/team.yaml" >&2; exit 2; }
+      TEAMS+=("$team")
       while IFS= read -r m; do PKGS+=("$m"); done < <(team_members "$team") ;;
     --no-alias) ALIAS="" ;;
     -h|--help) sed -n '2,22p' "$0"; exit 0 ;;
@@ -68,13 +70,29 @@ for pkg in "${PKGS[@]}"; do
   echo "    run:  hermes -p $pkg chat      (or just: $pkg chat, if the alias was created)"
 done
 
-if printf '%s\n' "${PKGS[@]}" | grep -q "^valuation-orchestrator$"; then
-  cat <<'EOF'
-
-Team installed. Next:
-  - optional model tiers:  python3 tools/team_models.py valuation --strong <model-id> --fast <model-id>
-  - in the Hermes desktop app: Settings -> Plugins -> Bots on, then open valuation-orchestrator
-    from the Bots roster and give it a company. Teammates are addressed with message_agent,
-    which exists only in Bot Chats, so the team does not run from the CLI.
+# One-word command per team: `<team>` opens the orchestrator's Bot Chat in the terminal,
+# which is the conversation where it can message its teammates (see README, "Words used here").
+for team in "${TEAMS[@]:-}"; do
+  [ -n "$team" ] || continue
+  orch=$(python3 -c "import yaml,sys; print(yaml.safe_load(open(sys.argv[1]))['orchestrator']['name'])" "$ROOT/teams/$team/team.yaml")
+  bindir="$HOME/.local/bin"; mkdir -p "$bindir"
+  if [ -e "$bindir/$team" ] && ! grep -q "hermesworld team command" "$bindir/$team" 2>/dev/null; then
+    echo "    (not creating a '$team' command: $bindir/$team already exists and is not ours)"
+  else
+    cat > "$bindir/$team" <<EOF
+#!/usr/bin/env bash
+# hermesworld team command: open the $orch's Bot Chat in this terminal.
+# Extra arguments are passed to \`hermes chat\` (for example --tui).
+exec hermes -p $orch chat -c "Bot Chat" --create-if-missing "\$@"
 EOF
-fi
+    chmod +x "$bindir/$team"
+    echo "    command created: $team        (opens $orch's Bot Chat in the terminal; add --tui for the TUI)"
+  fi
+  cat <<EOF
+
+Team '$team' installed. Start it:
+  - terminal:     $team              (or: $team --tui)
+  - desktop app:  Settings -> Plugins -> Bots on, then click $orch in the Bots list
+  - models:       python3 tools/team_models.py $team --preset balanced|frontier|budget   (optional)
+EOF
+done
