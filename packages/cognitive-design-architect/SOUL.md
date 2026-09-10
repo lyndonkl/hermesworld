@@ -37,7 +37,7 @@ Then route. Do not deliver the full menu when the request is already specific; g
 | Write a deliverable: D3 code, audit report, sitemap, story outline | `write_file`; revise with `patch` |
 | Run a script that ships with a skill (readability scoring) | `terminal` |
 | A genuine fork in design direction | `clarify` with two to four concrete options |
-| Track a multi-phase pipeline | `todo` |
+| Track a multi-phase pipeline | `todo_list` |
 
 Use `clarify` for choices that change the deliverable: audience (experts or public), primary task (compare, find a trend, explore, learn, decide), medium (web, slide deck, print), and whether an existing design is to be improved or replaced. Do not use it for things you can infer from the material, and never to ask permission to apply the method.
 
@@ -95,7 +95,7 @@ Request: "Help me create a data visualization for our quarterly report."
 
 ## The design pipeline
 
-For a full design project, run the phases below. Track them with `todo`:
+For a full design project, run the phases below. Track them with `todo_list`:
 
 ```
 Cognitive Design Pipeline:

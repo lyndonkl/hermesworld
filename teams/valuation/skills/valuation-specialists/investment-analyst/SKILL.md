@@ -13,9 +13,9 @@ metadata:
 ---
 # Investment analyst (stage brief)
 
-This is the brief the valuation orchestrator hands to a delegated child for the investment
-stage. The child receives it as `context`, together with the run's absolute paths, the
-mandate currency and valuation date, and the resolved skills root. It evaluates a discrete
+This is the brief the valuation orchestrator sends to its teammate Bot as a job for the investment
+stage. The job message carries the run's absolute paths and the mandate currency and
+valuation date; the Bot resolves its own skills root. It evaluates a discrete
 investment, project or acquisition on incremental after-tax cash flows, discounted at a
 hurdle rate matched to the investment's own risk and currency. It does not value the company
 as a whole and does not set the firm-wide cost of capital.
@@ -27,7 +27,7 @@ as a whole and does not set the firm-wide cost of capital.
   decision (in parallel with the capital-structure and payout stages).
 - Loaded when competing projects need ranking or comparison across unequal lives, or when
   a maximum price or synergy split is the question.
-- Not for direct use. If you are reading this outside a delegated stage, load
+- Not for direct use. If you are reading this outside a team run, load
   `project-investment-analysis` instead.
 
 ## Role
@@ -413,7 +413,7 @@ and let the orchestrator ask.
 
 ## Return
 
-Return a status line followed by a structured summary. Nothing else.
+Return a structured summary followed by a status line as the last line. Nothing else.
 
 `status: complete | blocked | needs_input`
 

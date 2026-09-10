@@ -13,7 +13,13 @@ agent:
 skills:
   creation_nudge_interval: 0     # curated agent; do not nudge it to write new skills
 
-# Housekeeping calls on a cheap model; nothing here needs reasoning.
+# SOUL.md is a context file. Hermes cuts context files above 20,000 characters when it cannot
+# tell the model's window; ours run to 30,000, so pin a cap that fits.
+context_file_max_chars: 60000
+
+# Housekeeping calls on a cheap model; nothing here needs reasoning. Any role left unset runs
+# on the main model at its price. vision stays unset (the cheap model has no vision); review
+# stays on the main model on purpose.
 auxiliary:
   compression:
     provider: openrouter
@@ -22,5 +28,35 @@ auxiliary:
     provider: openrouter
     model: z-ai/glm-5.3-flash
   background_review:
+    provider: openrouter
+    model: z-ai/glm-5.3-flash
+  approval:
+    provider: openrouter
+    model: z-ai/glm-5.3-flash
+  skills_hub:
+    provider: openrouter
+    model: z-ai/glm-5.3-flash
+  mcp:
+    provider: openrouter
+    model: z-ai/glm-5.3-flash
+  profile_describer:
+    provider: openrouter
+    model: z-ai/glm-5.3-flash
+  goal_judge:
+    provider: openrouter
+    model: z-ai/glm-5.3-flash
+  curator:
+    provider: openrouter
+    model: z-ai/glm-5.3-flash
+  monitor:
+    provider: openrouter
+    model: z-ai/glm-5.3-flash
+  triage_specifier:
+    provider: openrouter
+    model: z-ai/glm-5.3-flash
+  kanban_decomposer:
+    provider: openrouter
+    model: z-ai/glm-5.3-flash
+  memory_query_rewrite:
     provider: openrouter
     model: z-ai/glm-5.3-flash

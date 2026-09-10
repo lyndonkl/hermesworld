@@ -13,8 +13,8 @@
 # new versions.
 #
 # After each install, tools/post_install.py:
-#   1. seeds the profile's model block from your root profile when the package
-#      ships no model pin (none of ours do); change it with `hermes -p <name> model`;
+#   1. seeds the profile's model block from your root profile only if a package ever
+#      ships without one (all of ours pin a model); change it with `hermes -p <name> model`;
 #   2. for team members (packages with a bot.yaml), writes the profile's Bot
 #      metadata once — description and Bot title in profile.yaml — so the
 #      desktop roster and every teammate's system prompt show who does what.
@@ -27,7 +27,7 @@ ALIAS="--alias"
 PKGS=()
 TEAMS=()
 
-team_members() {  # print orchestrator + member names of teams/<name>-team.yaml
+team_members() {  # print orchestrator + member names of teams/<name>/team.yaml
   python3 - "$ROOT/teams/$1/team.yaml" <<'PY'
 import sys, yaml
 t = yaml.safe_load(open(sys.argv[1]))
@@ -82,8 +82,9 @@ for team in "${TEAMS[@]:-}"; do
     cat > "$bindir/$team" <<EOF
 #!/usr/bin/env bash
 # hermesworld team command: open the $orch's Bot Chat in this terminal.
-# Extra arguments are passed to \`hermes chat\` (for example --tui).
-exec hermes -p $orch chat -c "Bot Chat" --create-if-missing "\$@"
+# Extra arguments are passed to \`hermes chat\` (for example --tui). --in pins the chat to the
+# folder you ran it from; a resumed Bot Chat would otherwise cd back to wherever it last ran.
+exec hermes -p $orch chat --in "\$PWD" -c "Bot Chat" --create-if-missing "\$@"
 EOF
     chmod +x "$bindir/$team"
     echo "    command created: $team        (opens $orch's Bot Chat in the terminal; add --tui for the TUI)"

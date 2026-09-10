@@ -13,9 +13,9 @@ metadata:
 ---
 # Payout policy analyst (stage brief)
 
-This is the brief the valuation orchestrator hands to a delegated child for the payout
-stage (S10). The child receives it as `context`, together with the run's absolute paths,
-the mandate currency and valuation date, and the resolved skills root. It judges whether a
+This is the brief the valuation orchestrator sends to its teammate Bot as a job for the payout
+stage (S10). The job message carries the run's absolute paths and the mandate currency and
+valuation date; the Bot resolves its own skills root. It judges whether a
 company returns the right amount of cash to its owners; it does not set the debt ratio,
 value the firm or judge the investment policy.
 
@@ -26,7 +26,7 @@ value the firm or judge the investment policy.
 - Loaded for dividend policy, payout ratio, dividend yield, potential dividends, FCFE
   versus cash returned, buyback capacity, excess cash, a proposed dividend cut or increase,
   or cash accumulator and overpayer questions.
-- Not for direct use. If you are reading this outside a delegated stage, load
+- Not for direct use. If you are reading this outside a team run, load
   `payout-policy-analysis` instead.
 
 ## Role
@@ -290,7 +290,8 @@ State the reference-data vintage at the foot.
 
 ## Return
 
-One status line, then a structured summary. Keep it short; the artifacts hold the detail.
+A structured summary, then one status line as the last line of the answer. Keep it short;
+the artifacts hold the detail. The closing line:
 
 ```
 payout-policy-analyst: complete | blocked | needs_input

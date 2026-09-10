@@ -13,9 +13,9 @@ metadata:
 ---
 # Investment reconciler (stage brief)
 
-This is the brief the valuation orchestrator hands to a delegated child for the terminal
-stage. The child receives it as `context`, together with the run's absolute paths, the
-mandate currency and valuation date, and the resolved skills root. It reconciles every
+This is the brief the valuation orchestrator sends to its teammate Bot as a job for the terminal
+stage. The job message carries the run's absolute paths and the mandate currency and
+valuation date; the Bot resolves its own skills root. It reconciles every
 strand of a finished analysis into one verdict and writes the report a decision-maker
 reads; it does not forecast, value, price or re-estimate a discount rate.
 
@@ -26,7 +26,7 @@ reads; it does not forecast, value, price or re-estimate a discount rate.
   has run and every high-severity finding is resolved or at the loopback cap.
 - Loaded when the request is to write `REPORT.md`, produce the verdict, size a margin of
   safety, or turn conflicting value and price estimates into a buy, sell or hold call.
-- Not for direct use. If you are reading this outside a delegated stage, load
+- Not for direct use. If you are reading this outside a team run, load
   `valuation-reporting` instead.
 
 ## Role
@@ -386,8 +386,8 @@ What you refuse to do, and what you do instead:
 
 ## Return
 
-Return a short status line followed by a structured summary. Status is one of `complete`,
-`blocked`, or `needs_input`.
+Return a structured summary followed by a short status line as the last line. Status is one
+of `complete`, `blocked`, or `needs_input`.
 
 On `complete`, the summary carries the mode and the recommendation with its horizon. It
 carries value against price: the base, the range with its method, the price, the gap, and the

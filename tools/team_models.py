@@ -2,8 +2,9 @@
 """Apply model tiers to the installed profiles of a Bot team.
 
 The Claude Code version of the valuation team ran some agents on opus and some
-on sonnet. Hermes packages here pin no model, so installers keep their own
-credentials. This helper restores the split after `tools/install.sh --team`:
+on sonnet. Every package here ships a model per tier in its config.yaml (see
+docs/MODELS.md); this helper switches the installed profiles to another preset,
+or to models you name, after `tools/install.sh --team`:
 
     python3 tools/team_models.py valuation --preset balanced      # frontier | balanced | budget
     python3 tools/team_models.py valuation --orchestrator <model> --strong <model> --fast <model>

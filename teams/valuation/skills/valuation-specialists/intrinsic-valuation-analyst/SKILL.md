@@ -13,9 +13,9 @@ metadata:
 ---
 # Intrinsic valuation analyst (stage brief)
 
-This is the brief the valuation orchestrator hands to a delegated child for the intrinsic
-valuation stage. The child receives it as `context`, together with the run's absolute paths,
-the mandate currency and valuation date, and the resolved skills root. It turns value
+This is the brief the valuation orchestrator sends to its teammate Bot as a job for the intrinsic
+valuation stage. The job message carries the run's absolute paths and the mandate currency and
+valuation date; the Bot resolves its own skills root. It turns value
 drivers into a value per share and states what the market price already assumes; it does
 not clean statements, build discount rates, write the narrative, run multiples or issue the
 verdict.
@@ -30,7 +30,7 @@ verdict.
   paths the orchestrator gives).
 - Not loaded for banks, distressed firms, private companies or pre-profit startups; those
   routes go to the special-situations stage.
-- Not for direct use. If you are reading this outside a delegated stage, load
+- Not for direct use. If you are reading this outside a team run, load
   `dcf-valuation-engine` instead.
 
 ## Role
@@ -349,8 +349,8 @@ return `needs_input` with the specific question and the options, and let the orc
 
 ## Return
 
-Open with one status line: `complete`, `blocked` or `needs_input`, with the value per share
-and currency when there is one. Then a structured summary:
+Close with one status line: `complete`, `blocked` or `needs_input`, with the value per share
+and currency when there is one. Before it, a structured summary:
 
 - **Model variant** — cash flow, discount rate, stages, phase lengths, basis, currency, and
   the reconciliation condition if an equity route was stood in for.

@@ -13,9 +13,9 @@ metadata:
 ---
 # Financial statement analyst (stage brief)
 
-This is the brief the valuation orchestrator hands to a delegated child for the
-statement-repair stage (S3). The child receives it as `context`, together with the run's
-absolute paths, the mandate currency and valuation date, and the resolved skills root. It
+This is the brief the valuation orchestrator sends to its teammate Bot as a job for the
+statement-repair stage (S3). The job message carries the run's absolute paths and the mandate currency and
+valuation date; the Bot resolves its own skills root. It
 converts reported accounting statements into valuation-ready numbers on one restated basis;
 it does not forecast, choose a discount rate, value anything or decide the route.
 
@@ -26,7 +26,7 @@ it does not forecast, choose a discount rate, value anything or decide the route
 - Loaded again whenever a critic finding reopens the financials stage, or when a downstream
   stage reports that the lease rate and the cost of debt disagree or that a normalized EBIT
   moves the rating.
-- Not for direct use. If you are reading this outside a delegated stage, load
+- Not for direct use. If you are reading this outside a team run, load
   `financial-statement-normalization` instead.
 
 ## Role
@@ -412,15 +412,13 @@ inconsistency no later stage can repair.
 
 ## Return
 
-Return a short status line and a structured summary. Nothing else.
+Return a structured summary that ends with a short status line. Nothing else.
 
 Status is one of `complete`, `blocked`, `needs_input` or `partial`.
 
 On `complete`:
 
 ```
-complete — statements restated to TTM basis, N adjustments applied, circularity resolved in K passes.
-
 artifacts:
   cleaned-financials.json  <absolute path>
   adjustments.md           <absolute path>
@@ -438,6 +436,8 @@ constraints: honored IDs; refused IDs with the alternative taken
 vintages: every reference table and its as_of
 flags: anything a critic should look at — short history, padded R&D years, failed ties,
   an aggressive-accounting signal and the single channel chosen for it
+
+complete — statements restated to TTM basis, N adjustments applied, circularity resolved in K passes.
 ```
 
 On `blocked`, name the exact missing or malformed input and what would unblock it. On

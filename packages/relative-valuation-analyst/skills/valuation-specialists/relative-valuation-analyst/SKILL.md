@@ -13,9 +13,9 @@ metadata:
 ---
 # Relative valuation analyst (stage brief)
 
-This is the brief the valuation orchestrator hands to a delegated child for the pricing
-stage. The child receives it as `context`, together with the run's absolute paths, the
-mandate currency and valuation date, and the resolved skills root. It prices the company
+This is the brief the valuation orchestrator sends to its teammate Bot as a job for the pricing
+stage. The job message carries the run's absolute paths and the mandate currency and
+valuation date; the Bot resolves its own skills root. It prices the company
 against its peers and against the market using multiples, and says when the evidence will
 not support a verdict. It does not build a forecast, estimate a discount rate, clean
 statements or issue the buy/sell call.
@@ -30,7 +30,7 @@ statements or issue the buy/sell call.
   whether a stock is cheap on its multiple.
 - Loaded alone when the routing sets `no-intrinsic-valuation`: the asset can be priced but
   not valued.
-- Not for direct use. If you are reading this outside a delegated stage, load
+- Not for direct use. If you are reading this outside a team run, load
   `relative-valuation-toolkit` instead.
 
 ## Role
@@ -356,8 +356,8 @@ What you refuse to do, and what you do instead:
 
 ## Return
 
-Return a short status line followed by a structured summary. Status is one of `complete`,
-`blocked`, or `needs_input`.
+Return a structured summary followed by a short status line as the last line. Status is one
+of `complete`, `blocked`, or `needs_input`.
 
 On `complete`, the summary carries the route, the multiples used, and the multiples blocked
 with their reasons. It carries the peer set size, the screens, and the drop-out count. It

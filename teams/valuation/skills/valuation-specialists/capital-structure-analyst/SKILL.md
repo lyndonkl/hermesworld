@@ -13,9 +13,9 @@ metadata:
 ---
 # Capital structure analyst (stage brief)
 
-This is the brief the valuation orchestrator hands to a delegated child for the financing
-stage. The child receives it as `context`, together with the run's absolute paths, the
-mandate currency and valuation date, and the resolved skills root. It answers how much debt
+This is the brief the valuation orchestrator sends to its teammate Bot as a job for the financing
+stage. The job message carries the run's absolute paths and the mandate currency and
+valuation date; the Bot resolves its own skills root. It answers how much debt
 the firm should carry and what kind it should be; it does not set the hurdle rate used
 elsewhere, value the firm, recommend a payout or judge individual projects.
 
@@ -28,7 +28,7 @@ elsewhere, value the firm, recommend a payout or judge individual projects.
   fixed-versus-floating decisions.
 - Not loaded for a financial service firm or a REIT: the `no-optimal-debt-ratio`
   constraint applies and the stage returns `not_applicable` with the reason.
-- Not for direct use. If you are reading this outside a delegated stage, load
+- Not for direct use. If you are reading this outside a team run, load
   `cost-of-capital-toolkit` and `debt-design` instead.
 
 ## Role
@@ -435,11 +435,10 @@ The other hard stops:
 
 ## Return
 
-Return a one-line status followed by a compact structured summary. Keep it short; the
+Return a compact structured summary that ends with a one-line status. Keep it short; the
 detail lives in the artifacts.
 
 ```
-status: complete | blocked | not_applicable | needs_input | needs_script
 artifacts: <absolute path to capital-structure.json>, <absolute path to capital-structure.md>
 current_ratio: <market, incl. leases>
 recommended: <range> (<direction>), mechanical argmin <ratio>
@@ -451,6 +450,7 @@ constraints_honored: <IDs>
 needs_script: <calculations with no script, if any>
 findings: <upstream numbers you disagree with, if any>
 open_questions: <what would change the answer>
+status: complete | blocked | not_applicable | needs_input | needs_script
 ```
 
 On `blocked`, replace the body with the exact artifact or field you need and the stage

@@ -13,9 +13,9 @@ metadata:
 ---
 # Real options analyst (stage brief)
 
-This is the brief the valuation orchestrator hands to a delegated child for the real-options
-stage. The child receives it as `context`, together with the run's absolute paths, the
-mandate currency and valuation date, and the resolved skills root. It values genuine
+This is the brief the valuation orchestrator sends to its teammate Bot as a job for the real-options
+stage. The job message carries the run's absolute paths and the mandate currency and
+valuation date; the Bot resolves its own skills root. It values genuine
 embedded optionality and rejects the candidates that only look like options; it does not
 write the DCF, the forecast or the bridge.
 
@@ -27,7 +27,7 @@ write the DCF, the forecast or the bridge.
   equity in a deeply levered firm.
 - Loaded after the intrinsic or special-situations stage has produced `dcf-result.json`,
   so option value can be scaled against equity value and double counting can be checked.
-- Not for direct use. If you are reading this outside a delegated stage, load
+- Not for direct use. If you are reading this outside a team run, load
   `option-valuation-toolkit` instead.
 
 ## Role
@@ -368,12 +368,10 @@ special-situations stage, so the same risk is not priced in two places.
 
 ## Return
 
-A short status line, then a structured summary. Status is one of `complete`, `blocked`,
-`needs_input`, or `not_applicable`.
+A structured summary, then a short status line as the last line of the answer. Status is
+one of `complete`, `blocked`, `needs_input`, or `not_applicable`.
 
 ```
-real-options-analyst: complete — 4 candidates screened, 3 rejected, 1 valued.
-
 Artifacts:  <abs path>/real-options.json, <abs path>/real-options.md
 Valued:     RO1 Avonex patent — raw 905, factor 0.85, claimed 769 (range 450-940)
 Rejected:   RO2 expansion into adjacent market (test 2: first-mover only)
@@ -384,6 +382,8 @@ Findings:   RO-F1 high — Avonex growth is in forecast.json as well as in the o
             remove it from the forecast. Owning stage: intrinsic-valuation.
 Vintages:   biotech variance table 2024-01; riskfree from cost-of-capital.json
 Confidence: medium — volatility is an industry proxy, not a measurement of this drug
+
+real-options-analyst: complete — 4 candidates screened, 3 rejected, 1 valued.
 ```
 
 For `blocked`, name the missing artifact or field and nothing else. For `needs_input`, give

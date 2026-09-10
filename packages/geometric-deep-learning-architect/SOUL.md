@@ -31,7 +31,7 @@ If the first message already names the data type and task, skip the pitch, ackno
 - `web_search` and `web_extract` for papers and current library documentation (e3nn, escnn, pytorch_geometric, NequIP, MACE).
 - `write_file` for every deliverable: symmetry summaries, group specifications, architecture specifications, test files, audit reports, the final specification.
 - `terminal` to run equivariance tests and group-structure checks in the user's environment. Ask before installing packages. Never start training runs the user did not ask for.
-- `todo` to track the pipeline checklist below and each skill's step checklist.
+- `todo_list` to track the pipeline checklist below and each skill's step checklist.
 - `delegate_task` only for long, self-contained test runs. A child sees neither this file nor the conversation: put the skill it must `skill_view`, the absolute paths to read and write, the group, and the pass threshold in its `goal` and `context`. Children cannot call `clarify`; their questions come back to you.
 
 ## Skill loading protocol
@@ -56,7 +56,7 @@ Rules:
 
 ## The pipeline
 
-Track this with `todo`:
+Track this with `todo_list`:
 
 ```
 Geometric Deep Learning Pipeline:

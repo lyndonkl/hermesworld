@@ -84,16 +84,24 @@ can message its teammates. Try:
 - "Corporate-finance review of Deere: is its debt, payout and investment policy right?"
 - "What is the most we should pay for a target? I will upload its 10-K."
 
-Open any teammate's chat from the roster to watch its stage as it runs.
+You can switch to other chats while a stage runs. Close the teammates' chats before you
+start and keep them closed until the run reports back: a teammate whose chat is open when
+its job arrives works inside that chat instead, and the orchestrator stops waiting for the
+answer after five minutes. Open a teammate's chat afterwards to read what it did; the
+workspace folder shows the stage's artifacts as they land.
 
 ## Requirements and limits
 
 - The orchestrator must be in its Bot Chat: the `valuation` command in a terminal, or the
   Bot's chat in the desktop. In any other conversation it cannot reach its teammates and
-  says so.
+  says so. Use one surface at a time; the second is refused with `already has a live owner`.
 - All fifteen profiles on the same machine (they share the run's workspace on disk).
 - Replies arrive between turns as background notifications. The orchestrator dispatches,
   reports one line, and ends its turn; results wake it. A full valuation is many turns.
+- The orchestrator's `config.yaml` sets `dashboard.ws_orphan_reap_grace_s: 0`. Without it
+  the desktop closes an idle chat 20 seconds after you switch away, and closing the chat
+  kills every stage job it has out. Existing installs pick this up only through
+  `tools/install.sh --team valuation`; `hermes profile update` keeps the old `config.yaml`.
 - No schema validation on replies, unlike `delegate_task`; the orchestrator therefore trusts
   artifacts on disk, never a teammate's summary.
 

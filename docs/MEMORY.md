@@ -27,8 +27,8 @@ fast models, not frontier ones. The set-up routes them like this:
 | Honcho job | Model (OpenRouter id) | Why | Price per 1M tokens in / out |
 |---|---|---|---|
 | Deriver, summaries, dreams | `z-ai/glm-5.3-flash` | Runs on every message; needs tool calling and JSON, not depth; GDPval-AA 1669 | 0.07 / 0.23 |
-| Dialectic minimal, low, medium | `z-ai/glm-5.3-flash` | Runs before a reply, so the conversation waits on it; answers in seconds | 0.07 / 0.23 |
-| Dialectic high, max | `z-ai/glm-5.3` | Multi-step reasoning when a Bot explicitly asks for depth; Intelligence Index 45 | 1.40 / 4.40 |
+| Dialectic minimal, low, medium | `z-ai/glm-5.3-flash` | Runs in the background while the Bot works; must finish inside the request timeout (120 s, set by the wiring) or it is dropped for that turn | 0.07 / 0.23 |
+| Dialectic high, max | `z-ai/glm-5.3` | Multi-step reasoning; Hermes steps up to these levels on long messages (over 120 and 400 characters) and when a Bot asks for depth; Intelligence Index 45 | 1.40 / 4.40 |
 | Embeddings | `openai/text-embedding-3-small` | 1536 dimensions, Honcho's default schema; served through OpenRouter's `/v1/embeddings` | about 0.02 |
 
 At the volumes an individual produces this is cents per day. Change any of them with
@@ -65,8 +65,10 @@ the installer, the restart after a reboot, and the health check:
    then `honcho start --profile hermes --api-port 8001` unless it is already healthy.
    If the rendered settings changed, the stack is restarted.
 4. **Wiring.** For every installed hermesworld profile not yet attached: a
-   `hosts.hermes_<profile>` block in `~/.hermes/honcho.json`, `memory.provider: honcho`
-   in the profile's `config.yaml`, then `hermes honcho sync` to create the AI peers.
+   `hosts.hermes_<profile>` block in `~/.hermes/honcho.json` (plus a 120-second request
+   `timeout`), `memory.provider: honcho` and `memory.nudge_interval: 0` in the profile's
+   `config.yaml` (Honcho extracts on its own), then `hermes honcho sync`. The AI peers
+   themselves are created on each profile's first chat.
    Your default `~/.hermes` profile is left alone unless you pass `--include-default`.
 
 Then a status table: Honcho health and, per profile, whether it is installed, its
@@ -106,9 +108,11 @@ agent's own memory writes.
 
 ## Capacity
 
-The dialectic is the one job the conversation waits on: Hermes asks for it every
-few turns before replying. The set-up therefore keeps it on the fast model with
-output caps per level, and asks for it less often on specialist Bots
+The dialectic runs in the background every few turns while the Bot works. A result
+that arrives after the request timeout is dropped for that turn, which is why the
+wiring sets `timeout` to 120 seconds in `~/.hermes/honcho.json` (Hermes's default is
+30). The set-up keeps it on the fast model with output caps per level, and asks for
+it less often on specialist Bots
 (`dialecticCadence` 4 at level `minimal`) than on the orchestrator and standalone
 agents (cadence 3 at `low`). All of those are per-profile keys in
 `~/.hermes/honcho.json` and can be changed by hand.

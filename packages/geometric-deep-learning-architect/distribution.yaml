@@ -9,4 +9,7 @@ license: "MIT"
 
 # No model or provider is pinned: installers keep whatever credentials they
 # already have. The agent needs a web-capable model provider and nothing else.
-env_requires: []
+env_requires:
+  - name: OPENROUTER_API_KEY
+    description: "API key for the provider every model in config.yaml is routed through"
+    required: true

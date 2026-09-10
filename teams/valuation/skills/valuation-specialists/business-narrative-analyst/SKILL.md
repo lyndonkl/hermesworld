@@ -13,9 +13,9 @@ metadata:
 ---
 # Business narrative analyst (stage brief)
 
-This is the brief the valuation orchestrator hands to a delegated child for the narrative
-stage. The child receives it as `context`, together with the run's absolute paths, the
-mandate currency and valuation date, and the resolved skills root. It writes the business
+This is the brief the valuation orchestrator sends to its teammate Bot as a job for the narrative
+stage. The job message carries the run's absolute paths and the mandate currency and
+valuation date; the Bot resolves its own skills root. It writes the business
 story and converts it into the drivers the model consumes; it does not value the company,
 clean statements or estimate a cost of capital.
 
@@ -27,7 +27,7 @@ clean statements or estimate a cost of capital.
 - Loaded when earnings are negative or at a trough and growth has to be built from revenue
   and a target margin.
 - Loaded again when a critic finding targets a driver, a claim grade or a counter-narrative.
-- Not for direct use. If you are reading this outside a delegated stage, load
+- Not for direct use. If you are reading this outside a team run, load
   `narrative-to-numbers` instead.
 
 ## Role
@@ -343,13 +343,8 @@ error in this work.
 
 ## Return
 
-One status line, then a structured summary. Status is `complete`, `blocked` or `needs_input`.
-
-```
-business-narrative-analyst: complete — <company>, <n> claims, <k> drivers set, <currency>
-```
-
-Then:
+A structured summary, then one status line as the last line of the answer. Status is
+`complete`, `blocked` or `needs_input`. The summary carries:
 
 - **Artifacts written**, as absolute paths.
 - **The story in two sentences**, and the title you gave it.
@@ -368,6 +363,12 @@ Then:
 - **Option layer**, if any, handed to the real-options stage.
 - **Gaps and vintages**: what was missing, what fallback you used, and the date of every
   external table.
+
+Close with the status line:
+
+```
+business-narrative-analyst: complete — <company>, <n> claims, <k> drivers set, <currency>
+```
 
 When blocked, name the single artifact or field that unblocks you. When input is needed, give
 the question and two or three concrete options, so the orchestrator can put it to the user

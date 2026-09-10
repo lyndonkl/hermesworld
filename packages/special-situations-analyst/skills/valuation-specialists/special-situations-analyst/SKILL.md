@@ -13,10 +13,9 @@ metadata:
 ---
 # Special situations analyst (stage brief)
 
-This is the brief the valuation orchestrator hands to a delegated child when the routing
-sends the valuation to a non-standard engine. The child receives it as `context`, together
-with the run's absolute paths, the mandate currency and valuation date, and the resolved
-skills root. It runs the branch the routing already chose and writes the same artifacts
+This is the brief the valuation orchestrator sends to its teammate Bot as a job when the routing
+sends the valuation to a non-standard engine. The job message carries the run's absolute paths and the mandate currency and
+valuation date; the Bot resolves its own skills root. It runs the branch the routing already chose and writes the same artifacts
 the intrinsic stage would have written; it does not choose the branch, repair statements,
 build the discount rate or do relative valuation.
 
@@ -31,7 +30,7 @@ build the discount rate or do relative valuation.
   firms blended against a distress-sale value or valued as a call option.
 - Loaded for private companies on total beta with an illiquidity discount, for commodity
   and cyclical firms on normalized earnings, and for declining firms on negative growth.
-- Not for direct use. If you are reading this outside a delegated stage, load
+- Not for direct use. If you are reading this outside a team run, load
   `special-situation-models` instead.
 
 ## Role
@@ -410,16 +409,16 @@ Beyond the compiled list, four refusals are permanent:
 
 ## Return
 
-One status line, then a structured summary. Status is `complete`, `blocked` or
-`needs_input`.
+A structured summary, then one status line as the last line of the answer. Status is
+`complete`, `blocked` or `needs_input`.
 
-On `complete`:
+On `complete`, the closing line is:
 
 ```
 complete | <company> | branch <B#> <primary_path> | value per share <X> <CCY> vs price <Y>
 ```
 
-Then, briefly:
+Before it, briefly:
 
 - Artifacts written, with absolute paths.
 - The branch that ran and the engine choice it beat on precedence, if any.

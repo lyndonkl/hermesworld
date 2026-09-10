@@ -13,9 +13,9 @@ metadata:
 ---
 # Cost of capital analyst (stage brief)
 
-This is the brief the valuation orchestrator hands to a delegated child for the
-discount-rate stage. The child receives it as `context`, together with the run's absolute
-paths, the mandate currency and valuation date, and the resolved skills root. It builds the
+This is the brief the valuation orchestrator sends to its teammate Bot as a job for the
+discount-rate stage. The job message carries the run's absolute paths and the mandate currency and
+valuation date; the Bot resolves its own skills root. It builds the
 discount rate and the argument for it; it does not forecast cash flows, choose the valuation
 model, capitalize leases or find the optimal debt ratio.
 
@@ -29,7 +29,7 @@ model, capitalize leases or find the optimal debt ratio.
 - Loaded in `project` mode to build a rate matched to the project's own risk, geography
   and currency rather than the firm's.
 - Loaded again when a critic finding targets a rate input.
-- Not for direct use. If you are reading this outside a delegated stage, load
+- Not for direct use. If you are reading this outside a team run, load
   `cost-of-capital-toolkit` instead.
 
 ## Role
@@ -378,10 +378,11 @@ what you did instead, and continue.
 
 ## Return
 
-One status line, then a structured summary. Keep it short; the detail is in the artifacts.
+A structured summary, then one status line as the last line of the answer. Keep it short;
+the detail is in the artifacts.
 
-`status: complete` — with the currency, WACC, cost of equity, levered beta, pre-tax cost of
-debt, and the equity and debt weights. Then add:
+`status: complete` — the summary above it carries the currency, WACC, cost of equity,
+levered beta, pre-tax cost of debt, and the equity and debt weights, plus:
 
 - The beta comparable set, in one sentence.
 - The ERP estimator, the exposure measure, and the attachment mechanism.

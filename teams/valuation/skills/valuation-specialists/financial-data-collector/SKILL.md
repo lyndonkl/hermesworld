@@ -13,9 +13,9 @@ metadata:
 ---
 # Financial data collector (stage brief)
 
-This is the brief the valuation orchestrator hands to a delegated child for the
-data-collection stage. The child receives it as `context`, together with the run's absolute
-paths, the mandate currency and valuation date, and the resolved skills root. It gathers the
+This is the brief the valuation orchestrator sends to its teammate Bot as a job for the
+data-collection stage. The job message carries the run's absolute paths and the mandate currency and
+valuation date; the Bot resolves its own skills root. It gathers the
 inputs an analysis runs on and records where each one came from; it does not compute,
 classify, normalize or value.
 
@@ -26,7 +26,7 @@ classify, normalize or value.
   classification.
 - Loaded again when a later stage reports a missing input, when reference tables need a
   vintage refresh, or when new filings have landed.
-- Not for direct use. If you are reading this outside a delegated stage, load
+- Not for direct use. If you are reading this outside a team run, load
   `financial-data-sourcing` instead.
 
 ## Role
@@ -324,7 +324,8 @@ nobody remembers at the point where it bites.
 
 ## Return
 
-One status line — `complete`, `blocked` or `needs_input` — then this summary.
+This summary, then a few lines of prose, then one status line — `complete`, `blocked` or
+`needs_input` — as the last line of the answer.
 
 ```json
 {"status": "complete",
@@ -343,7 +344,7 @@ One status line — `complete`, `blocked` or `needs_input` — then this summary
  "questions": []}
 ```
 
-Follow it with a few lines of prose for the orchestrator. Say which inputs came from the
+Between the summary and the status line, a few lines of prose for the orchestrator. Say which inputs came from the
 user and which fallbacks the next stages inherit. Say which reference table was carried
 stale, and how far past its limit. Name the one missing thing most likely to change the
 answer. On `blocked`, name exactly what is needed and stop.

@@ -61,7 +61,7 @@ Verify:
 
 ```bash
 hermes profile list                    # one row per package, Distribution column filled
-hermes -p superforecaster skills list  # 8 local skills, all enabled
+hermes -p superforecaster skills list  # 9 local skills (8 of ours plus Hermes's own hermes-agent), all enabled
 hermes profile show superforecaster    # SOUL.md: exists, Distribution: superforecaster@1.0.0
 ```
 
@@ -88,8 +88,15 @@ or, in the desktop app, switch Bot Mode on and click **valuation-orchestrator** 
 the Bots list. Give it a company and a question, for example "Value Costco as of
 last Friday's close, in USD." It asks what it cannot infer, then sends each stage
 to the right specialist; the answers come back into its chat as notifications, so
-you will see it dispatch, pause, and continue. Open any specialist's chat to watch
-its stage. A specialist can also be asked directly, for example
+you will see it dispatch, pause, and continue. You can switch to other chats while a
+stage runs. Close the specialists' chats before you start, and leave them closed until
+the run reports back: a specialist whose chat is open when its job arrives works inside
+that chat instead, and the orchestrator stops waiting for the answer after five minutes.
+Open a specialist's chat afterwards to read what it did. Use either the desktop or the
+terminal for the orchestrator, not both at once; the second one is refused with
+"already has a live owner". The desktop keeps only three profile backends running at
+a time (Settings, pool limits), and every Bot chat you open takes one.
+A specialist can also be asked directly, for example
 `cost-of-capital-analyst chat` and "estimate Costco's cost of capital"; it will
 ask for the inputs it needs.
 
@@ -138,7 +145,15 @@ models it uses and what they cost: [docs/MEMORY.md](docs/MEMORY.md).
 ```bash
 git pull
 hermes profile update superforecaster  # re-copies SOUL.md and skills; keeps your config, memories, sessions
+hermes profile update superforecaster --force-config   # also re-applies the shipped config.yaml
 hermes profile delete superforecaster  # removes the profile and its alias
+rm ~/.local/bin/valuation              # the team command is ours, not Hermes's; remove it by hand
+```
+
+An update replaces the whole `skills/` folder, so a skill the agent saved into the
+profile itself is removed; keep such skills in your root profile instead.
+
+```bash
 ```
 
 Hermes installs a distribution from a git URL or a local directory and requires
@@ -164,6 +179,7 @@ hermes skills install lyndonkl/hermesworld/packages/superforecaster/skills/forec
 | `readability.py` exits asking for `textstat` | `python3 -m pip install --user textstat` (optional; the agents continue without it) |
 | `product-strategist` cannot render a PDF | Install pandoc and a LaTeX engine (`brew install pandoc basictex` on macOS); markdown output is unaffected |
 | A profile name collides with a command on your PATH | `hermes profile install ./packages/<name> --name <other-name>` |
+| The orchestrator's chat says it `already has a live owner` | It is open somewhere else (the desktop or a terminal). Close it there, then retry |
 | In the desktop, a new chat shows a different model than the profile pins | The desktop's composer remembers the last model you picked and applies it to every new chat, silently, without changing the profile. Click the model pill in the composer and pick the profile's model (or its default entry); the profile's `config.yaml` was never changed. `hermes profile show <name>` prints the pinned model |
 
 ## What is in a package

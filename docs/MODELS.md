@@ -16,8 +16,8 @@ that agent is using.
 |---|---|---|
 | A profile | `model.default` and `model.provider` in that profile's `config.yaml`, or `hermes -p <name> model` | Everything that profile does, including every skill it loads |
 | Delegated children | `delegation.model` / `delegation.provider` in the parent's `config.yaml` | Every `delegate_task` child of that profile, all the same model |
-| Auxiliary jobs | `auxiliary.<role>` in `config.yaml`: `compression`, `background_review`, `review`, `title_generation`, `vision`, `kanban_decomposer`, `profile_describer`, `curator`, `goal_judge`, `approval`, `triage_specifier` | Housekeeping calls, independent of the main model |
-| Reasoning effort | `agent.reasoning_effort` (`low` … `xhigh`, `max`) and per-model `agent.reasoning_overrides` | How hard the chosen model thinks; each model accepts a specific set of levels |
+| Auxiliary jobs | `auxiliary.<role>` in `config.yaml`: `compression`, `background_review`, `review`, `title_generation`, `vision`, `approval`, `skills_hub`, `mcp`, `memory_query_rewrite`, `tts_audio_tags`, `triage_specifier`, `kanban_decomposer`, `profile_describer`, `goal_judge`, `curator`, `monitor`, `moa_reference`, `moa_aggregator` | Housekeeping calls, independent of the main model. A role left unset runs on the main model at its price; the packages pin every text role to the cheap model |
+| Reasoning effort | `agent.reasoning_effort` (`none`, `minimal`, `low`, `medium`, `high`, `xhigh`, `max`, `ultra`) and per-model `agent.reasoning_overrides` | How hard the chosen model thinks; each model accepts a subset, and on OpenRouter Hermes rounds an unsupported level down to the nearest one the model offers |
 | Mixture of Agents | `moa.presets` (reference models + an aggregator), selected as the model | Several models per turn, one acting; expensive, not a per-skill switch |
 | Kanban task | `hermes kanban set-model <id> <model>` | One board task, when using the Kanban dispatcher |
 
@@ -117,7 +117,7 @@ for `hermes -p <name> model` on the standalone agents.
 
 The balanced column is what every package now ships in its `config.yaml` (provider
 `openrouter`), so a fresh install already runs on these. The team's picks live in
-`teams/valuation-team.yaml` under `models:`; the standalone agents' in their own
+`teams/valuation/team.yaml` under `models:`; the standalone agents' in their own
 `config.yaml`. Installers keep their `config.yaml` across updates, so a later change of
 mind is made on the installed profile, not by re-installing.
 
@@ -139,12 +139,12 @@ Per-profile picks for the standalone agents, same reasoning:
 | `geometric-deep-learning-architect` | `openai/gpt-6-astra` at `high`, or `meta/muse-spark-1.3` to start | Maths plus PyTorch; GPT-6 Astra leads Terminal-Bench v4 |
 
 Reasoning effort: set it in the profile's `config.yaml` (`agent.reasoning_effort`).
-Each model accepts a specific set of levels, and Hermes caches that list per
-provider. For the picks above: Fable 5.1, GPT-6 Astra and Opus 5 take `low` to
-`max`. Muse Spark 1.3 takes `minimal` to `max`. GLM-5.3 and GLM-5.3-Flash take
-only `low`, `high` and `max`. Gemini 3.7 Flash takes `low` to `high`. The
-generated team configs use `high` for the strong and orchestrator tiers and
-`medium` for fast; edit them if a model rejects a level.
+Each model accepts a specific set of levels. On OpenRouter, Hermes rounds a level
+the model does not offer down to the nearest one it does, so a wrong level is not
+an error. Natively: Fable 5.1, GPT-6 Astra and Opus 5 take `low` to `max`; Muse
+Spark 1.3 takes `minimal` to `xhigh`; GLM-5.3 and GLM-5.3-Flash take `low`,
+`medium`, `high` and `max`; Gemini 3.7 Flash takes `low` to `high`. The generated
+team configs use `high` for the strong and orchestrator tiers and `medium` for fast.
 
 ## How to decide for real
 

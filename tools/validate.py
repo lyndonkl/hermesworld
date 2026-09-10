@@ -84,7 +84,8 @@ CLAUDE_ISMS = [
     (r"\bAskUserQuestion\b", "use the `clarify` tool"),
     (r"\bWebFetch\b", "use `web_extract`"),
     (r"\bWebSearch\b", "use `web_search`"),
-    (r"\bTodoWrite\b", "use `todo`"),
+    (r"\bTodoWrite\b", "use `todo_list`"),
+    (r"`todo`", "the Hermes tool is `todo_list` (`todo` is the toolset name)"),
     (r"\bSkill tool\b", "use `skill_view`"),
     (r"\bTask tool\b", "use `delegate_task`"),
     (r"\bAgent tool\b", "use `delegate_task`"),
@@ -478,7 +479,21 @@ def check_package(pkg: Path, rep: Report, selftest: bool) -> None:
     else:
         check_text_file_conventions(soul, rep)
         n = len(soul.read_text(encoding="utf-8"))
-        if n > 60_000:
+        # Hermes cuts context files (SOUL.md included) above `context_file_max_chars`, or above
+        # 20,000 chars when that key is unset and the model's window is unknown: head and tail
+        # are kept, the middle is dropped, silently. Every package here pins the cap.
+        cap = None
+        cfg_for_cap = pkg / "config.yaml"
+        if cfg_for_cap.is_file():
+            try:
+                cap = (yaml.safe_load(cfg_for_cap.read_text(encoding="utf-8")) or {}).get("context_file_max_chars")
+            except yaml.YAMLError:
+                cap = None
+        limit = cap if isinstance(cap, int) and cap > 0 else 20_000
+        if n > limit:
+            rep.err(where, "soul-size", f"SOUL.md is {n:,} chars; Hermes would cut it above {limit:,} "
+                    + ("(context_file_max_chars)" if cap else "(no context_file_max_chars in config.yaml)"))
+        elif n > 60_000:
             rep.warn(where, "soul-size", f"SOUL.md is {n:,} chars; it is injected into every system prompt")
     cfg = pkg / "config.yaml"
     if cfg.is_file():

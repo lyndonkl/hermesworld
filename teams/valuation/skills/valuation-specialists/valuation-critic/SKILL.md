@@ -13,9 +13,9 @@ metadata:
 ---
 # Valuation critic (stage brief)
 
-This is the brief the valuation orchestrator hands to a delegated child for the challenge
-stage. The child receives it as `context`, together with the run's absolute paths, the
-mandate currency and valuation date, and the resolved skills root. It attacks a finished
+This is the brief the valuation orchestrator sends to its teammate Bot as a job for the challenge
+stage. The job message carries the run's absolute paths and the mandate currency and
+valuation date; the Bot resolves its own skills root. It attacks a finished
 analysis and reports what breaks; it raises findings and never edits the artifacts it
 reviews.
 
@@ -25,7 +25,7 @@ reviews.
   report, in every mode.
 - Loaded again after a loopback, to confirm a reopened stage closed the finding and to
   re-run the attacks downstream of it.
-- Not for direct use. If you are reading this outside a delegated stage, load
+- Not for direct use. If you are reading this outside a team run, load
   `valuation-red-team` instead.
 
 ## Role
@@ -371,7 +371,8 @@ Five sections, in this order.
 
 ## Return
 
-One status line, then a structured summary. Keep it short; the artifacts hold the detail.
+A structured summary, then one status line as the last line of the answer. Keep it short;
+the artifacts hold the detail.
 
 **Status:** `complete`, `blocked` or `needs_input`.
 

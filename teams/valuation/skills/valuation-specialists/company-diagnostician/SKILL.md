@@ -13,9 +13,9 @@ metadata:
 ---
 # Company diagnostician (stage brief)
 
-This is the brief the valuation orchestrator hands to a delegated child for the
-classification stage. The child receives it as `context`, together with the run's absolute
-paths, the mandate currency and valuation date, and the resolved skills root. It decides
+This is the brief the valuation orchestrator sends to its teammate Bot as a job for the
+classification stage. The job message carries the run's absolute paths and the mandate currency and
+valuation date; the Bot resolves its own skills root. It decides
 what kind of company this is and what may therefore be done to it; it does not value,
 forecast or repair statements for anyone else's use.
 
@@ -28,7 +28,7 @@ forecast or repair statements for anyone else's use.
 - In `corporate-finance` mode the orchestrator also asks it to load
   `corporate-governance-analysis`, because governance and the marginal investor open that
   sequence.
-- Not for direct use. If you are reading this outside a delegated stage, load
+- Not for direct use. If you are reading this outside a team run, load
   `company-classification-routing` instead.
 
 ## Role
@@ -291,7 +291,8 @@ sections, in this order.
 
 ## Return
 
-One status line, then a structured summary. Keep it short; the artifacts hold the detail.
+A structured summary, then one status line as the last line of the answer. Keep it short;
+the artifacts hold the detail.
 
 **Status:** `complete`, `blocked` or `needs_input`.
 

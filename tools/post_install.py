@@ -3,14 +3,16 @@
 
     python3 tools/post_install.py <package dir> <profile dir> [<root config.yaml>]
 
-1. Seeds the profile's `model:` block from the root profile's config.yaml when the
-   package ships no model pin. Mirrors hermes_cli.profiles._seed_model_config.
+1. Seeds the profile's `model:` block from the root profile's config.yaml only if a
+   package ever ships without one (all of ours pin a model). Mirrors
+   hermes_cli.profiles._seed_model_config.
 1b. Seeds the API key(s) the pinned provider needs into the profile's .env from the
    root profile's .env when missing. Named profiles are credential-isolated (their
    HERMES_HOME has its own .env), so without this a fresh profile gets HTTP 401
    from the provider even though the root profile works.
-1c. Restores `memory.provider: honcho` when the profile was wired by tools/memory_setup.py
-   before a reinstall (`hermes profile install --force` resets config.yaml).
+1c. Restores `memory.provider: honcho` and `memory.nudge_interval: 0` when the profile was
+   wired by tools/memory_setup.py before a reinstall (`hermes profile install --force`
+   resets config.yaml).
 2. For Bot-team members (packages that carry a bot.yaml), writes the profile's Bot
    metadata into profile.yaml: `description` and `ui_meta.hermes-bots.title`.
    Hermes reads exactly these two fields to (a) treat the profile as a Bot and
@@ -44,12 +46,15 @@ def seed_model(profile: Path, root_cfg: Path) -> None:
     print(f"  seeded model block from {root_cfg}")
 
 
-# Provider -> the env var(s) Hermes reads for it (hermes_cli config docs / cli-config.yaml.example).
+# Provider id -> the env var(s) Hermes reads for it (hermes_cli/auth.py provider table). `nous` is
+# OAuth (hermes auth), so it needs no key here.
 PROVIDER_KEYS = {
-    "openrouter": ["OPENROUTER_API_KEY"], "anthropic": ["ANTHROPIC_API_KEY"], "openai": ["OPENAI_API_KEY"],
-    "gemini": ["GEMINI_API_KEY", "GOOGLE_API_KEY"], "zai": ["GLM_API_KEY"], "kimi-coding": ["KIMI_API_KEY"],
-    "minimax": ["MINIMAX_API_KEY"], "nous-api": ["NOUS_API_KEY"], "huggingface": ["HF_TOKEN"],
-    "nvidia": ["NVIDIA_API_KEY"], "deepinfra": ["DEEPINFRA_API_KEY"], "copilot": ["GITHUB_TOKEN"],
+    "openrouter": ["OPENROUTER_API_KEY"], "anthropic": ["ANTHROPIC_API_KEY"],
+    "openai-api": ["OPENAI_API_KEY"], "openai": ["OPENAI_API_KEY"],
+    "gemini": ["GEMINI_API_KEY", "GOOGLE_API_KEY"], "zai": ["GLM_API_KEY", "ZAI_API_KEY", "Z_AI_API_KEY"],
+    "kimi-coding": ["KIMI_API_KEY", "KIMI_CODING_API_KEY"], "kimi-coding-cn": ["KIMI_CN_API_KEY"],
+    "minimax": ["MINIMAX_API_KEY"], "huggingface": ["HF_TOKEN"], "nvidia": ["NVIDIA_API_KEY"],
+    "deepinfra": ["DEEPINFRA_API_KEY"], "copilot": ["COPILOT_GITHUB_TOKEN", "GH_TOKEN", "GITHUB_TOKEN"],
     "ai-gateway": ["AI_GATEWAY_API_KEY"], "kilocode": ["KILOCODE_API_KEY"],
 }
 
@@ -77,6 +82,9 @@ def seed_provider_key(profile: Path, root_env: Path) -> None:
     root = _env_lines(root_env)
     have = _env_lines(profile / ".env")
     to_copy = [k for k in dict.fromkeys(keys) if k not in have and root.get(k)]
+    absent = [k for k in dict.fromkeys(keys) if k not in have and not root.get(k)]
+    if absent and not to_copy:
+        print(f"  {', '.join(absent)} is not in {root_env}; add it to {profile / '.env'} before the first chat")
     if not to_copy:
         return
     env_path = profile / ".env"
@@ -104,9 +112,10 @@ def keep_memory_wiring(profile: Path) -> None:
     cfg_path = profile / "config.yaml"
     cfg = (yaml.safe_load(cfg_path.read_text(encoding="utf-8")) if cfg_path.is_file() else {}) or {}
     mem = cfg.get("memory") or {}
-    if mem.get("provider") == "honcho":
+    if mem.get("provider") == "honcho" and mem.get("nudge_interval") == 0:
         return
     mem["provider"] = "honcho"
+    mem["nudge_interval"] = 0   # Honcho extracts on its own; the built-in nudge would double up
     cfg["memory"] = mem
     cfg_path.write_text(yaml.safe_dump(cfg, sort_keys=False), encoding="utf-8")
     print("  memory.provider: honcho restored (profile was wired before this reinstall)")

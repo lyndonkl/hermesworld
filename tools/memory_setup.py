@@ -27,7 +27,8 @@ What `wire` does
     (`hosts.hermes_<profile>`), all sharing the workspace "hermes" and your user peer,
     each with its own AI peer; specialist Bots get a strong-persona observation preset
   * sets `memory.provider: honcho` in each profile's config.yaml
-  * runs `hermes honcho sync` to create the peers on the server
+  * sets `timeout: 120` for Honcho requests (Hermes's default of 30 s drops slow queries)
+  * runs `hermes honcho sync`; the AI peers themselves are created on each profile's first chat
 
 Nothing here touches your default ~/.hermes profile unless you pass --include-default.
 Reads: teams/*/team.yaml and packages/*/ to know which profiles are ours.
@@ -303,6 +304,9 @@ def cmd_wire(args) -> int:
     cfg_path = HERMES_HOME / "honcho.json"
     cfg = json.loads(cfg_path.read_text(encoding="utf-8")) if cfg_path.is_file() else {}
     cfg["baseUrl"] = base
+    # Hermes gives a Honcho request 30 s by default and drops the result on timeout; the per-turn
+    # query runs several tool rounds on a cloud model and often needs 20-50 s.
+    cfg.setdefault("timeout", 120)
     hosts = cfg.setdefault("hosts", {})
     if args.include_default:
         hosts.setdefault(HOST_ROOT, {}).update({"enabled": True, "aiPeer": HOST_ROOT, "workspace": WORKSPACE, "peerName": peer})
@@ -323,14 +327,20 @@ def cmd_wire(args) -> int:
         c_path = HERMES_HOME / "profiles" / p["name"] / "config.yaml"
         c = yaml.safe_load(c_path.read_text(encoding="utf-8")) or {}
         mem = c.get("memory") or {}
+        changed = False
         if mem.get("provider") != "honcho":
             mem["provider"] = "honcho"
+            changed = True
+        if mem.get("nudge_interval") != 0:
+            mem["nudge_interval"] = 0   # Honcho extracts on its own; the built-in nudge would double up
+            changed = True
+        if changed:
             c["memory"] = mem
             c_path.write_text(yaml.safe_dump(c, sort_keys=False), encoding="utf-8")
-    print(f"  memory.provider: honcho set on {len(wanted)} profile(s)")
+    print(f"  memory.provider: honcho and nudge_interval: 0 set on {len(wanted)} profile(s)")
 
     first = wanted[0]["name"]
-    print(f"  $ hermes -p {first} honcho sync   (creates the AI peers on the server)")
+    print(f"  $ hermes -p {first} honcho sync   (registers the profiles; AI peers are created on first chat)")
     r = subprocess.run(["hermes", "-p", first, "honcho", "sync"], text=True)
     if r.returncode != 0:
         print("  sync did not complete; peers are created lazily on first chat, so this is not fatal")
