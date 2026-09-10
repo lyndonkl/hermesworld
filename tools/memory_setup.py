@@ -183,11 +183,27 @@ def write_env(args) -> bool:
     return True
 
 
+def _fix_embedding_dims() -> bool:
+    """Honcho's image creates the pgvector columns at 1536 dims; a local embedding model with
+    a different size fails startup with 'embedding dim (1536) does not match'. Honcho ships
+    scripts/configure_embeddings.py for exactly this; run it inside the API image."""
+    logs = sh(["docker", "compose", "-p", f"honcho-{HONCHO_PROFILE}", "logs", "api", "--tail", "80"]).stdout
+    if "does not match EMBEDDING_VECTOR_DIMENSIONS" not in logs:
+        return False
+    print("  pgvector schema dimension differs from the embedding model; reconfiguring (empty tables only)...")
+    r = subprocess.run(["docker", "compose", "-p", f"honcho-{HONCHO_PROFILE}", "run", "--rm", "--no-deps",
+                        "--entrypoint", "/app/.venv/bin/python", "api", "scripts/configure_embeddings.py", "--yes"],
+                       cwd=str(HONCHO_DIR))
+    return r.returncode == 0
+
+
 def start_stack(args) -> None:
     cmd = ["honcho", "start", "--profile", HONCHO_PROFILE, "--api-port", str(args.api_port)]
     print("  $ " + " ".join(cmd))
     if subprocess.run(cmd).returncode != 0:
-        sys.exit("honcho start failed; run it by hand to see the output")
+        if not _fix_embedding_dims() or subprocess.run(cmd).returncode != 0:
+            sys.exit("honcho start failed; run it by hand to see the output "
+                     f"(docker compose -p honcho-{HONCHO_PROFILE} logs api)")
     base = f"http://127.0.0.1:{args.api_port}"
     for _ in range(60):
         if health(base):
@@ -309,6 +325,10 @@ def cmd_wire(args) -> int:
     hosts = cfg.setdefault("hosts", {})
     if args.include_default:
         hosts.setdefault(HOST_ROOT, {}).update({"enabled": True, "aiPeer": HOST_ROOT, "workspace": WORKSPACE, "peerName": peer})
+    elif HOST_ROOT not in hosts:
+        # `hermes honcho sync` inherits from the default block and refuses without one; keep the
+        # default ~/.hermes profile itself detached (enabled: false).
+        hosts[HOST_ROOT] = {"enabled": False, "aiPeer": HOST_ROOT, "workspace": WORKSPACE, "peerName": peer}
     for p in wanted:
         block = hosts.setdefault(host_key(p["name"]), {})
         block.update({"enabled": True, "aiPeer": p["name"], "workspace": WORKSPACE, "peerName": peer})

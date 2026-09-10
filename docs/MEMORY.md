@@ -91,6 +91,10 @@ the installer, the restart after a reboot, and the health check:
 Then a status table: Honcho health, model server health, and per profile whether it
 is installed, its provider, and whether it has a host block.
 
+Secrets stay on your machine. The Honcho `.env` under `~/.honcho/profiles/hermes/`
+and each profile's `.env` are written with mode 600 and are never part of this
+repository; the only env file in the repo is the placeholder template.
+
 The OpenRouter key for the two cloud dialectic levels is read from `~/.hermes/.env`;
 without it those levels run locally too. Useful options: `--dialectic-high local`,
 `--local-model mlx-community/Qwen3.8-27B-8bit`, `--wait-minutes 180` on a slow link.
@@ -138,7 +142,11 @@ agent's own memory writes.
 
 | Symptom | Fix |
 |---|---|
-| `up` says Docker is not running | Start Docker Desktop, re-run |
+| `up` says Docker is not running | Start Docker Desktop, re-run (`tools/memory.sh` starts it for you on macOS) |
+| API container unhealthy, log says "embedding dim (1536) does not match" | The image creates pgvector columns at 1536; `tools/memory.sh` now runs Honcho's `configure_embeddings.py --yes` and retries. By hand: `cd ~/.honcho/profiles/hermes && docker compose -p honcho-hermes run --rm --no-deps --entrypoint /app/.venv/bin/python api scripts/configure_embeddings.py --yes` |
+| `hermes honcho sync` says "not configured on default profile" | It inherits from a `hosts.hermes` block; `wire` now writes one with `enabled: false` so your default profile stays detached |
+| A Bot answers `HTTP 401: User not found` | The profile has no API key: named profiles read only their own `.env`. `tools/install.sh` seeds the pinned provider's key from `~/.hermes/.env`; re-run it, or `hermes -p <name> config set OPENROUTER_API_KEY ...` |
+| A Bot answers `HTTP 403 ... 18+ age confirmation` | OpenRouter gates some models (Meta's Muse Spark among them) behind a one-time confirmation at https://openrouter.ai/settings/preferences |
 | `honcho start` fails to pull or start | `honcho doctor`; `docker ps`; check ports 8001, 5432, 6379 are free, or pass `--api-port` |
 | Deriver errors mention JSON | The template already sets `DERIVER_MODEL_CONFIG__STRUCTURED_OUTPUT_MODE=json_object`; confirm the local model supports tool calling |
 | Honcho cannot reach the model server | Inside Docker the host is `host.docker.internal`; check `tools/local_llm.sh --check` on the host |

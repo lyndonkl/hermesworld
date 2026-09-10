@@ -46,8 +46,12 @@ tools/install.sh --all                 # everything
 `tools/install.sh` runs `hermes profile install ./packages/<name> --alias --yes`
 for each package. Every package ships a `config.yaml` that pins an OpenRouter
 model chosen for its workload (the "balanced" preset in
-[docs/MODELS.md](docs/MODELS.md)); if a package ever ships without one, the
-installer copies the model block from your root profile instead.
+[docs/MODELS.md](docs/MODELS.md)). Hermes profiles are credential-isolated, so
+the installer also copies the pinned provider's API key from your root
+`~/.hermes/.env` into each new profile's own `.env`, locally and with mode 600.
+No key is ever part of this repository. Some OpenRouter models, Meta's Muse
+Spark among them, need a one-time 18+ confirmation in your OpenRouter account
+settings before they answer.
 
 Verify:
 
