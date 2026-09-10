@@ -43,13 +43,12 @@ locally: Qwen3.8-Flash-Next is 104 GB at 4-bit, and GLM-5.3 is larger still.
 
 | Honcho job | Runs on | Why |
 |---|---|---|
-| Deriver, summaries, dreams, embeddings | Local Qwen3.8 27B + MiniLM embeddings via vllm-mlx | Runs on every message; volume is high, judgment needed is moderate; free |
-| Dialectic minimal, low, medium | Local Qwen3.8 27B | Hermes's default level is `low`; one short call every other turn |
-| Dialectic high, max | OpenRouter `z-ai/glm-5.3-flash` | Multi-step tool-calling reasoning; Intelligence Index 42 at $0.07 per 1M input tokens; only used when a Bot explicitly asks for deep reasoning |
+| Deriver, summaries, dreams, embeddings | Local Qwen3.8 27B + MiniLM embeddings via vllm-mlx | Background work; nobody waits on it; free |
+| Dialectic, all levels | OpenRouter `z-ai/glm-5.3-flash` | Runs before a reply, so the conversation waits on it; a fast cloud model answers in seconds at $0.07 per 1M input tokens |
 
-Pass `--dialectic-high local` to keep everything on the machine. Costs then are
-electricity and disk; with the hybrid, the cloud share is cents per day of heavy
-use. Honcho Cloud, for comparison, charges $2.00 per 1M ingested tokens plus
+Pass `--dialectic-model local` to keep everything on the machine; expect the per-turn
+reasoning to take a minute or more when several agents are active. With the hybrid,
+the cloud share is cents per day of heavy use. Honcho Cloud, for comparison, charges $2.00 per 1M ingested tokens plus
 $0.001 to $0.50 per reasoning query.
 
 If you do not have Apple Silicon, any OpenAI-compatible server works: vLLM,
@@ -95,8 +94,8 @@ Secrets stay on your machine. The Honcho `.env` under `~/.honcho/profiles/hermes
 and each profile's `.env` are written with mode 600 and are never part of this
 repository; the only env file in the repo is the placeholder template.
 
-The OpenRouter key for the two cloud dialectic levels is read from `~/.hermes/.env`;
-without it those levels run locally too. Useful options: `--dialectic-high local`,
+The OpenRouter key for the dialectic is read from `~/.hermes/.env`; without it the
+dialectic runs locally too. Useful options: `--dialectic-model local`,
 `--local-model mlx-community/Qwen3.8-27B-8bit`, `--wait-minutes 180` on a slow link.
 The individual steps remain available as `python3 tools/memory_setup.py up|wire|status|down`
 and `tools/local_llm.sh --status|--stop`.
@@ -125,6 +124,19 @@ to do the work. Those stay in the briefs and skills, which is why improving an
 agent is still an edit to this repo. Run artifacts stay in the workspace on disk.
 The built-in `MEMORY.md` and `USER.md` keep working underneath; Honcho mirrors the
 agent's own memory writes.
+
+## Capacity on one machine
+
+The first live session showed why the split above matters. Two chats produced 42
+calls to the local model in half an hour; 39 were the per-turn dialectic, each with
+an 8,000-token prompt and an 8,192-token output allowance, and a 27B reasoning model
+serving several of them at once took 70 to 200 seconds per call. Nothing failed on
+Honcho's side, but the reasoning arrived too late to be injected. The setup now
+sends the dialectic to the fast cloud model, caps output per level, keeps the
+background jobs local, and asks for the dialectic less often on specialist Bots
+(`dialecticCadence` 4 at level `minimal`) than on the orchestrator and standalone
+agents (cadence 3 at `low`). All of those are per-profile keys in
+`~/.hermes/honcho.json` and can be changed by hand.
 
 ## Limits to know
 

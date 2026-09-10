@@ -116,9 +116,9 @@ def health(base_url: str, timeout: float = 3.0) -> bool:
 # ---------------------------------------------------------------- up
 
 def render_env(args) -> str:
-    key = "" if args.dialectic_high == "local" else env_value(HERMES_HOME / ".env", "OPENROUTER_API_KEY")
-    if args.dialectic_high != "local" and not key:
-        print("  no OPENROUTER_API_KEY in ~/.hermes/.env: dialectic high/max will run locally too")
+    key = "" if args.dialectic_model == "local" else env_value(HERMES_HOME / ".env", "OPENROUTER_API_KEY")
+    if args.dialectic_model != "local" and not key:
+        print("  no OPENROUTER_API_KEY in ~/.hermes/.env: the per-turn dialectic will run locally too (slower)")
     cloud = bool(key)
     values = {
         "OPENROUTER_API_KEY": key,
@@ -126,9 +126,9 @@ def render_env(args) -> str:
         "LOCAL_LLM_MODEL": args.local_model,
         "LOCAL_EMBED_MODEL": args.embed_model,
         "LOCAL_EMBED_DIMS": str(args.embed_dims),
-        "DIALECTIC_HIGH_MODEL": args.dialectic_high if cloud else args.local_model,
-        "DIALECTIC_HIGH_BASE_URL": "https://openrouter.ai/api/v1" if cloud else args.local_url,
-        "DIALECTIC_HIGH_KEY_ENV": "LLM_OPENROUTER_API_KEY" if cloud else "LLM_OPENAI_API_KEY",
+        "DIALECTIC_MODEL": args.dialectic_model if cloud else args.local_model,
+        "DIALECTIC_BASE_URL": "https://openrouter.ai/api/v1" if cloud else args.local_url,
+        "DIALECTIC_KEY_ENV": "LLM_OPENROUTER_API_KEY" if cloud else "LLM_OPENAI_API_KEY",
     }
     text = TEMPLATE.read_text(encoding="utf-8")
     for k, v in values.items():
@@ -279,6 +279,11 @@ def cmd_start(args) -> int:
         cmd_wire(args)
     else:
         print("  all installed profiles already wired")
+        if cfg_path.is_file():
+            cfg = json.loads(cfg_path.read_text())
+            if apply_tuning(cfg):
+                cfg_path.write_text(json.dumps(cfg, indent=2) + "\n", encoding="utf-8")
+                print("  cadence tuning added to existing host blocks")
     print()
     return cmd_status(args)
 
@@ -300,13 +305,37 @@ def cmd_up(args) -> int:
 
 def health_models(base_url: str) -> bool:
     try:
-        with urllib.request.urlopen(f"{base_url.rstrip('/')}/models", timeout=3) as r:
+        with urllib.request.urlopen(f"{base_url.rstrip('/')}/models", timeout=15) as r:
             return r.status == 200
     except Exception:
         return False
 
 
 # ---------------------------------------------------------------- wire
+
+# Hermes-side cadence per kind of profile. The dialectic is an LLM call before a reply,
+# so specialists (which mostly execute a fixed procedure) ask for it less often and at the
+# lightest level; the orchestrator and standalone agents keep the default level.
+TUNING = {
+    "member": {"dialecticCadence": 4, "dialecticReasoningLevel": "minimal", "contextTokens": 1200},
+    "orchestrator": {"dialecticCadence": 3, "dialecticReasoningLevel": "low", "contextTokens": 1600},
+    "standalone": {"dialecticCadence": 3, "dialecticReasoningLevel": "low", "contextTokens": 1600},
+}
+
+
+def apply_tuning(cfg: dict) -> int:
+    hosts = cfg.setdefault("hosts", {})
+    n = 0
+    for p in our_profiles():
+        block = hosts.get(host_key(p["name"]))
+        if not isinstance(block, dict):
+            continue
+        for k, v in TUNING[p["kind"]].items():
+            if k not in block:
+                block[k] = v
+                n += 1
+    return n
+
 
 def cmd_wire(args) -> int:
     base = args.base_url
@@ -336,6 +365,7 @@ def cmd_wire(args) -> int:
         block.update({"enabled": True, "aiPeer": p["name"], "workspace": WORKSPACE, "peerName": peer})
         if p["kind"] == "member":
             block.setdefault("observation", STRONG_PERSONA)
+    apply_tuning(cfg)
     cfg_path.write_text(json.dumps(cfg, indent=2) + "\n", encoding="utf-8")
     print(f"  wrote {cfg_path} ({len(wanted)} host block(s), workspace '{WORKSPACE}', user peer '{peer}')")
 
@@ -418,8 +448,8 @@ def main() -> int:
     ap.add_argument("--local-model", default="mlx-community/Qwen3.8-27B-4bit")
     ap.add_argument("--embed-model", default="mlx-community/all-MiniLM-L6-v2-4bit")
     ap.add_argument("--embed-dims", type=int, default=384, help="must match the embedding model (MiniLM 384, embeddinggemma 768)")
-    ap.add_argument("--dialectic-high", default="z-ai/glm-5.3-flash",
-                    help="OpenRouter model for dialectic high/max, or 'local' to keep everything on the local server")
+    ap.add_argument("--dialectic-model", default="z-ai/glm-5.3-flash",
+                    help="OpenRouter model for the per-turn dialectic reasoning, or 'local' to keep everything on the local server")
     ap.add_argument("--no-start", action="store_true", help="up: render the env file but do not start the stack")
     ap.add_argument("--wait-minutes", type=int, default=90, help="start: how long to wait for the local model to download and load")
     ap.add_argument("--peer-name", help="wire: your user peer name (default: $USER)")
