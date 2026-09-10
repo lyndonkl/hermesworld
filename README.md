@@ -164,6 +164,7 @@ hermes skills install lyndonkl/hermesworld/packages/superforecaster/skills/forec
 | `readability.py` exits asking for `textstat` | `python3 -m pip install --user textstat` (optional; the agents continue without it) |
 | `product-strategist` cannot render a PDF | Install pandoc and a LaTeX engine (`brew install pandoc basictex` on macOS); markdown output is unaffected |
 | A profile name collides with a command on your PATH | `hermes profile install ./packages/<name> --name <other-name>` |
+| In the desktop, a new chat shows a different model than the profile pins | The desktop's composer remembers the last model you picked and applies it to every new chat, silently, without changing the profile. Click the model pill in the composer and pick the profile's model (or its default entry); the profile's `config.yaml` was never changed. `hermes profile show <name>` prints the pinned model |
 
 ## What is in a package
 
