@@ -1,7 +1,7 @@
-# Memory for these agents: self-hosted Honcho on a local model
+# Memory for these agents: self-hosted Honcho, models on OpenRouter
 
-How to give every profile in this repo a shared, persistent model of you, run on
-your own machine, with the heavy reasoning optionally on a cheap cloud model. The
+How to give every profile in this repo a shared, persistent model of you. The memory
+server runs on your machine in Docker; its model calls go to cheap OpenRouter models. The
 choice between Honcho and Mem0, and what each learns, is discussed at the end of
 [MODELS.md](MODELS.md#memory-providers-briefly); this page is the how-to.
 
@@ -17,51 +17,39 @@ allows one external provider per profile, and all of that server-side work can b
 pointed at any OpenAI-compatible endpoint per job, which is what makes a local
 model practical.
 
-## Can a local model do Honcho's inference?
+## Which models Honcho uses, and why not a local one
 
-Honcho's requirement is tool calling in the OpenAI format for the deriver,
-dialectic and dream jobs, plus JSON output for the deriver, plus an embedding
-model. Its defaults are a small cloud model for text and `text-embedding-3-small`
-for vectors, so the jobs are designed for mini-class models, not frontier ones.
+Honcho's server makes its own LLM calls: tool calling in the OpenAI format for the
+deriver, dialectic and dream jobs, JSON output for the deriver, plus an embedding
+model. Its defaults are mini-class cloud models, so the jobs are designed for small,
+fast models, not frontier ones. The set-up routes them like this:
 
-**Your current server** is vllm-mlx serving `mlx-community/Qwen3-Coder-30B-A3B-Instruct-4bit`
-on port 8000 of an M3 Max with 96 GB. It supports tool calling, and vllm-mlx
-supports JSON-schema output and an `--embedding-model`. But the model itself is a
-coding specialist and a non-reasoning model: Artificial Analysis scores it 10 on
-the Intelligence Index v4.3. It will follow the deriver's extraction format, and it
-is fine for summaries and embeddings, but its observations about a person and its
-dialectic answers will be shallow. Not a good idea as the only model.
+| Honcho job | Model (OpenRouter id) | Why | Price per 1M tokens in / out |
+|---|---|---|---|
+| Deriver, summaries, dreams | `z-ai/glm-5.3-flash` | Runs on every message; needs tool calling and JSON, not depth; GDPval-AA 1669 | 0.07 / 0.23 |
+| Dialectic minimal, low, medium | `z-ai/glm-5.3-flash` | Runs before a reply, so the conversation waits on it; answers in seconds | 0.07 / 0.23 |
+| Dialectic high, max | `z-ai/glm-5.3` | Multi-step reasoning when a Bot explicitly asks for depth; Intelligence Index 45 | 1.40 / 4.40 |
+| Embeddings | `openai/text-embedding-3-small` | 1536 dimensions, Honcho's default schema; served through OpenRouter's `/v1/embeddings` | about 0.02 |
 
-**A better local choice on the same machine:** `mlx-community/Qwen3.8-27B-4bit`.
-Qwen3.8 27B is a reasoning model with tool calling, Apache-2.0, Intelligence Index
-34 at high effort, and about 15 GB as a 4-bit MLX build (the 8-bit is about 29 GB
-and also fits). That is the model `tools/local_llm.sh` serves by default. The two
-open-weights models that score higher on the leaderboards are out of reach
-locally: Qwen3.8-Flash-Next is 104 GB at 4-bit, and GLM-5.3 is larger still.
+At the volumes an individual produces this is cents per day. Change any of them with
+`tools/memory.sh --fast-model ... --deep-model ... --embed-model ... --embed-dims ...`;
+a different embedding size means starting the database again
+(`python3 tools/memory_setup.py down --wipe`).
 
-**The hybrid the tooling sets up by default:**
-
-| Honcho job | Runs on | Why |
-|---|---|---|
-| Deriver, summaries, dreams, embeddings | Local Qwen3.8 27B + MiniLM embeddings via vllm-mlx | Background work; nobody waits on it; free |
-| Dialectic, all levels | OpenRouter `z-ai/glm-5.3-flash` | Runs before a reply, so the conversation waits on it; a fast cloud model answers in seconds at $0.07 per 1M input tokens |
-
-Pass `--dialectic-model local` to keep everything on the machine; expect the per-turn
-reasoning to take a minute or more when several agents are active. With the hybrid,
-the cloud share is cents per day of heavy use. Honcho Cloud, for comparison, charges $2.00 per 1M ingested tokens plus
-$0.001 to $0.50 per reasoning query.
-
-If you do not have Apple Silicon, any OpenAI-compatible server works: vLLM,
-Ollama, LM Studio. Point `tools/memory_setup.py up` at it with `--local-url` and
-`--local-model`, and pick a model that supports tool calling and is at least in
-the Qwen3.8 27B class.
+**A local model was tried and removed.** On an M3 Max with 96 GB, a 27B reasoning
+model served through vllm-mlx handled the background jobs, but the per-turn dialectic
+queued behind them at 70 to 200 seconds per call, and the laptop ran hot. The
+existing Qwen3-Coder build on that machine was also unsuitable on its own: a coding
+specialist without reasoning, Intelligence Index 10. If you still want local
+inference, pass `--llm-base-url http://host.docker.internal:<port>/v1` and the model
+ids of any OpenAI-compatible server that supports tool calling; expect the latency
+above unless the machine is dedicated to it.
 
 ## Set-up: one command
 
 Prerequisites: Docker Desktop installed (the command starts it); `uv` installed;
-Hermes profiles installed from this repo (`tools/install.sh --all`); Python 3 with
-PyYAML. Apple Silicon for the default local server; other machines pass
-`--local-url` and `--local-model` for a server they run themselves.
+Hermes profiles installed from this repo (`tools/install.sh --all`); an OpenRouter
+key already configured in Hermes; Python 3 with PyYAML.
 
 ```bash
 tools/memory.sh --peer-name "Your Name"
@@ -70,35 +58,26 @@ tools/memory.sh --peer-name "Your Name"
 Every step is checked first and skipped when already done, so the same command is
 the installer, the restart after a reboot, and the health check:
 
-1. **Local model server.** If nothing answers on `:8000`, installs vllm-mlx with
-   `uv tool install`, writes a LaunchAgent (`com.hermesworld.local-llm`) so the
-   server starts at login and restarts if it dies, and waits for
-   `mlx-community/Qwen3.8-27B-4bit` plus the MiniLM embedding model to load. The
-   first start downloads about 15 GB; progress is in
-   `~/Library/Logs/hermesworld-local-llm.log`.
-2. **Docker.** Starts Docker Desktop if it is not running.
-3. **Honcho CLI.** `uv tool install honcho-cli` if missing.
-4. **Honcho stack.** Renders `infra/honcho/honcho.env.template` into
-   `~/.honcho/profiles/hermes/.env`, then `honcho start --profile hermes --api-port 8001`
-   unless it is already healthy. If the rendered settings changed, the stack is
-   restarted. Port 8001 because Honcho's default collides with the model server.
-5. **Wiring.** For every installed hermesworld profile not yet attached: a
+1. **Docker.** Starts Docker Desktop if it is not running.
+2. **Honcho CLI.** `uv tool install honcho-cli` if missing.
+3. **Honcho stack.** Renders `infra/honcho/honcho.env.template` into
+   `~/.honcho/profiles/hermes/.env` with your OpenRouter key and the models above,
+   then `honcho start --profile hermes --api-port 8001` unless it is already healthy.
+   If the rendered settings changed, the stack is restarted.
+4. **Wiring.** For every installed hermesworld profile not yet attached: a
    `hosts.hermes_<profile>` block in `~/.hermes/honcho.json`, `memory.provider: honcho`
    in the profile's `config.yaml`, then `hermes honcho sync` to create the AI peers.
    Your default `~/.hermes` profile is left alone unless you pass `--include-default`.
 
-Then a status table: Honcho health, model server health, and per profile whether it
-is installed, its provider, and whether it has a host block.
+Then a status table: Honcho health and, per profile, whether it is installed, its
+provider, and whether it has a host block.
 
 Secrets stay on your machine. The Honcho `.env` under `~/.honcho/profiles/hermes/`
 and each profile's `.env` are written with mode 600 and are never part of this
 repository; the only env file in the repo is the placeholder template.
 
-The OpenRouter key for the dialectic is read from `~/.hermes/.env`; without it the
-dialectic runs locally too. Useful options: `--dialectic-model local`,
-`--local-model mlx-community/Qwen3.8-27B-8bit`, `--wait-minutes 180` on a slow link.
-The individual steps remain available as `python3 tools/memory_setup.py up|wire|status|down`
-and `tools/local_llm.sh --status|--stop`.
+Honcho's containers restart with Docker Desktop; enable "Start Docker Desktop when
+you sign in" and memory is back after a reboot without any command.
 
 ## What each profile is set to observe
 
@@ -125,15 +104,11 @@ agent is still an edit to this repo. Run artifacts stay in the workspace on disk
 The built-in `MEMORY.md` and `USER.md` keep working underneath; Honcho mirrors the
 agent's own memory writes.
 
-## Capacity on one machine
+## Capacity
 
-The first live session showed why the split above matters. Two chats produced 42
-calls to the local model in half an hour; 39 were the per-turn dialectic, each with
-an 8,000-token prompt and an 8,192-token output allowance, and a 27B reasoning model
-serving several of them at once took 70 to 200 seconds per call. Nothing failed on
-Honcho's side, but the reasoning arrived too late to be injected. The setup now
-sends the dialectic to the fast cloud model, caps output per level, keeps the
-background jobs local, and asks for the dialectic less often on specialist Bots
+The dialectic is the one job the conversation waits on: Hermes asks for it every
+few turns before replying. The set-up therefore keeps it on the fast model with
+output caps per level, and asks for it less often on specialist Bots
 (`dialecticCadence` 4 at level `minimal`) than on the orchestrator and standalone
 agents (cadence 3 at `low`). All of those are per-profile keys in
 `~/.hermes/honcho.json` and can be changed by hand.
@@ -143,8 +118,6 @@ agents (cadence 3 at `low`). All of those are per-profile keys in
 - One external provider per profile; Honcho and Mem0 cannot share a profile.
 - The injected dialectic is capped at 600 characters by default
   (`dialecticMaxChars`); the base context is uncapped unless you set `contextTokens`.
-- A 27B local model answers the dialectic in a few seconds; the first token after
-  a cold start takes longer while the model loads.
 - Embedding dimensions are fixed at stack creation. Changing the embedding model
   later means `python3 tools/memory_setup.py down --wipe` and starting over.
 - Sessions map to directories by default (`sessionStrategy: per-directory`), so a
@@ -160,14 +133,12 @@ agents (cadence 3 at `low`). All of those are per-profile keys in
 | A Bot answers `HTTP 401: User not found` | The profile has no API key: named profiles read only their own `.env`. `tools/install.sh` seeds the pinned provider's key from `~/.hermes/.env`; re-run it, or `hermes -p <name> config set OPENROUTER_API_KEY ...` |
 | A Bot answers `HTTP 403 ... 18+ age confirmation` | OpenRouter gates some models (Meta's Muse Spark among them) behind a one-time confirmation at https://openrouter.ai/settings/preferences |
 | `honcho start` fails to pull or start | `honcho doctor`; `docker ps`; check ports 8001, 5432, 6379 are free, or pass `--api-port` |
-| Deriver errors mention JSON | The template already sets `DERIVER_MODEL_CONFIG__STRUCTURED_OUTPUT_MODE=json_object`; confirm the local model supports tool calling |
-| Honcho cannot reach the model server | Inside Docker the host is `host.docker.internal`; check `tools/local_llm.sh --check` on the host |
+| Deriver errors mention JSON | The template already sets `DERIVER_MODEL_CONFIG__STRUCTURED_OUTPUT_MODE=json_object`; confirm the model supports tool calling |
 | A profile shows `provider: builtin` in `status` | It was not installed when you ran `wire`; run `wire` again |
 | Turn it off | `python3 tools/memory_setup.py down --unwire` keeps the data and detaches the profiles; add `--wipe` to delete the data |
 
 References: Hermes memory providers doc (installed at
 `~/.hermes/hermes-agent/website/docs/user-guide/features/honcho.md`), Honcho
 configuration reference (`https://honcho.dev/docs/v3/contributing/configuration`),
-Honcho self-hosting (`https://honcho.dev/docs/v3/contributing/self-hosting`),
-vllm-mlx (`https://github.com/waybarrios/vllm-mlx`). Model scores are from
-Artificial Analysis as of 2026-09-09.
+Honcho self-hosting (`https://honcho.dev/docs/v3/contributing/self-hosting`).
+Model scores are from Artificial Analysis as of 2026-09-09.

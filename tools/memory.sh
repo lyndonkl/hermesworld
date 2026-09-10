@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# One command for memory: local model server + self-hosted Honcho + wiring of every
+# One command for memory: self-hosted Honcho (LLM jobs on OpenRouter) + wiring of every
 # installed hermesworld profile. Safe to re-run; each step is checked and skipped when
 # already done. Details and options: docs/MEMORY.md, `python3 tools/memory_setup.py -h`.
 set -euo pipefail

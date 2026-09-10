@@ -32,10 +32,10 @@ rules are written down in [AGENTS.md](AGENTS.md) and enforced by
   only needed by the repo tooling, not by the agents.
 - An OpenRouter API key already set up in Hermes (the packages pin OpenRouter
   models; change them with `hermes -p <name> model` if you use another provider).
-- For the optional memory stack only: Docker Desktop (the script starts it), and
-  [`uv`](https://docs.astral.sh/uv/) (the script uses it to install the Honcho CLI
-  and, on Apple Silicon, the local model server vllm-mlx). On other hardware you
-  run your own OpenAI-compatible model server and point the script at it.
+- For the optional memory stack only: Docker Desktop (the script starts it) and
+  [`uv`](https://docs.astral.sh/uv/) (the script uses it to install the Honcho CLI).
+  Honcho's own model calls go to OpenRouter with the same key; nothing runs on
+  your GPU.
 
 ## Quick start
 
@@ -119,20 +119,19 @@ ask for the inputs it needs.
   do, which files to read and write, the constraints, the currency and date. A
   specialist is a Bot that does one stage and writes only its own files.
 
-Optional, persistent memory across all profiles: a self-hosted Honcho stack whose
-LLM work runs on a local model. One command, safe to re-run at any time; it checks
-each step and skips what is already done:
+Optional, persistent memory across all profiles: a self-hosted Honcho stack in
+Docker, with its model calls on cheap OpenRouter models. One command, safe to
+re-run at any time; it checks each step and skips what is already done:
 
 ```bash
 tools/memory.sh --peer-name "Your Name"
 ```
 
-It installs the local model server as a login agent (Apple Silicon; first run
-downloads about 15 GB), starts Docker Desktop if needed, installs the Honcho CLI,
-starts Honcho on port 8001, wires every installed profile to it, and prints a
-status table. `tools/memory.sh` again later is the health check. Turn it off with
-`python3 tools/memory_setup.py down --unwire`. Why Honcho, what it learns,
-local-model options and costs: [docs/MEMORY.md](docs/MEMORY.md).
+It starts Docker Desktop if needed, installs the Honcho CLI, starts Honcho on port
+8001, wires every installed profile to it, and prints a status table. Running
+`tools/memory.sh` again later is the health check. Turn it off with
+`python3 tools/memory_setup.py down --unwire`. Why Honcho, what it learns, which
+models it uses and what they cost: [docs/MEMORY.md](docs/MEMORY.md).
 
 ## Update, remove, and other install paths
 
