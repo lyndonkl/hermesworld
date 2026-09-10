@@ -1,0 +1,118 @@
+# Choosing models for these agents
+
+Where a model can be set in Hermes, what each agent here actually demands, and
+which OpenRouter models fit each demand as of 2026-09-09. Benchmark numbers are
+from [Artificial Analysis](https://artificialanalysis.ai) (Intelligence Index
+v4.3 and its agentic evaluations); prices are OpenRouter's live list prices per
+1M tokens on the same day. Re-check both before spending real money; they move.
+
+## Where a model can be set
+
+Hermes picks a model per **profile** (session), never per skill. A skill is a
+document loaded into the running agent's context, so it runs on whatever model
+that agent is using.
+
+| Scope | Config | Applies to |
+|---|---|---|
+| A profile | `model.default` and `model.provider` in that profile's `config.yaml`, or `hermes -p <name> model` | Everything that profile does, including every skill it loads |
+| Delegated children | `delegation.model` / `delegation.provider` in the parent's `config.yaml` | Every `delegate_task` child of that profile, all the same model |
+| Auxiliary jobs | `auxiliary.<role>` in `config.yaml`: `compression`, `background_review`, `review`, `title_generation`, `vision`, `kanban_decomposer`, `profile_describer`, `curator`, `goal_judge`, `approval`, `triage_specifier` | Housekeeping calls, independent of the main model |
+| Reasoning effort | `agent.reasoning_effort` (`low` … `xhigh`, `max`) and per-model `agent.reasoning_overrides` | How hard the chosen model thinks; each model accepts a specific set of levels |
+| Mixture of Agents | `moa.presets` (reference models + an aggregator), selected as the model | Several models per turn, one acting; expensive, not a per-skill switch |
+| Kanban task | `hermes kanban set-model <id> <model>` | One board task, when using the Kanban dispatcher |
+
+Consequences for this repo:
+
+- The **single-profile `valuation-suite`** can use exactly two models: the
+  orchestrator's own, and one `delegation.model` shared by all fourteen
+  specialist children.
+- The **fifteen-profile Bot team** can use a model per specialist. That is the
+  main practical reason to run the team.
+- Skills that need a different model must move to a different profile or to a
+  delegated child; there is no other mechanism.
+
+## What each agent demands
+
+| Workload | Agents | What matters | Benchmarks that proxy it |
+|---|---|---|---|
+| Long-horizon orchestration | `valuation-orchestrator`, `valuation-suite` | Multi-turn state tracking, tool discipline, reading artifacts, not drifting over 20+ turns | AA-Briefcase (long-horizon knowledge work), GDPval-AA v2 (shell + web agent loop) |
+| Judgment specialists | `company-diagnostician`, `business-narrative-analyst`, `intrinsic-valuation-analyst`, `special-situations-analyst`, `capital-structure-analyst`, `investment-analyst`, `real-options-analyst`, `valuation-critic`, `investment-reconciler`; standalone `superforecaster`, `product-strategist` | Domain reasoning over long references (the playbooks are ~100 KB), defensible choices of inputs, adversarial review, prose quality | Intelligence Index, GDPval-AA v2 (finance occupations included), AA-LCR long-context reasoning |
+| Procedure specialists | `financial-data-collector`, `financial-statement-analyst`, `cost-of-capital-analyst`, `relative-valuation-analyst`, `payout-policy-analyst` | Follow a fixed procedure, run the bundled Python engines correctly, source numbers with citations | AA-AnalystAgent (spreadsheet/document quantitative work, pass^5), Terminal-Bench, GDPval-AA v2 |
+| Code-heavy design | `geometric-deep-learning-architect`, `cognitive-design-architect` | Maths and PyTorch or D3 code alongside explanation | Terminal-Bench v4.0, Intelligence Index |
+| Housekeeping | `auxiliary.*` roles, delegation children that only summarise | Cheap and fast; correctness of short outputs | price and tokens/sec |
+
+## The numbers that drove the picks
+
+Artificial Analysis, 2026-09-09. Elo columns are pairwise-comparison ratings;
+higher is better. Blanks mean the row was not in the tables retrieved.
+
+| Model (AA name) | Intelligence Index v4.3 | AA-Briefcase Elo | GDPval-AA v2 Elo | Other | OpenRouter id | $/1M in / out |
+|---|---|---|---|---|---|---|
+| Claude Fable 5.1 (xhigh) | 53 | 1650 | 1745 | Terminal-Bench v4 55.1%, AA-LCR 85.3% (max) | `anthropic/claude-fable-5.1` | 10 / 50 |
+| GPT-6 Astra (xhigh) | 53 | 1534 | | Terminal-Bench v4 59.6% (best) | `openai/gpt-6-astra` | 10 / 50 |
+| Claude Opus 5 (xhigh) | 50 | 1625 | 1708 | | `anthropic/claude-opus-5` | 5 / 25 |
+| Muse Spark 1.3 (max) | 48 | 1589 | 1703 | 222 tokens/s | `meta/muse-spark-1.3` | 1.25 / 4.25 |
+| GPT-5.6 Sol (max) | 47 | | 1624 | | `openai/gpt-5.6-sol` | 2 / 10 |
+| GLM-5.3 (max) | 45 | 1515 | 1675 | | `z-ai/glm-5.3` | 1.40 / 4.40 |
+| Grok 4.6 (xhigh) | 44 | 1545 | 1663 | | `x-ai/grok-4.6` | 2 / 6 |
+| Kimi K3 (max) | 44 | 1497 | 1584 | AA-LCR 88.7% (best) | `moonshotai/kimi-k3` | 3 / 15 |
+| GLM-5.3-Flash | 42 | | 1669 | | `z-ai/glm-5.3-flash` | 0.07 / 0.23 |
+| Qwen3.8-Flash-Next | 40 | 1587 | 1647 | | `qwen/qwen3.8-flash` (name mapping unverified) | 0.15 / 0.47 |
+| Gemini 3.7 Flash (high) | | | | AA-AnalystAgent 60.0% pass^5 (best) | `google/gemini-3.7-flash` | 0.75 / 3.75 |
+| Claude Sonnet 5 | | | | not in the retrieved rows | `anthropic/claude-sonnet-5` | 2 / 10 |
+| DeepSeek V4 Pro / Flash | | | | not in the retrieved rows | `deepseek/deepseek-v4-pro`, `deepseek/deepseek-v4-flash` | 0.96 / 1.91, 0.09 / 0.18 |
+
+Two things stand out. Muse Spark 1.3 sits within about 60 Elo of the frontier on
+both agentic evaluations at an eighth of the price and three times the speed.
+GLM-5.3-Flash scores 1669 on GDPval-AA at $0.07 per million input tokens, which
+makes it hard to justify anything dearer for procedure work until a real run
+shows it failing.
+
+## Presets
+
+`tools/team_models.py` applies these to the installed team; the same ids work
+for `hermes -p <name> model` on the standalone agents.
+
+| Tier | frontier | balanced (recommended start) | budget |
+|---|---|---|---|
+| `orchestrator` | `anthropic/claude-fable-5.1` at `xhigh` | `meta/muse-spark-1.3` at `high` | `z-ai/glm-5.3` at `high` |
+| `strong` | `anthropic/claude-opus-5` at `xhigh` | `meta/muse-spark-1.3` at `high` | `z-ai/glm-5.3` at `high` |
+| `fast` | `anthropic/claude-sonnet-5` at `high` | `google/gemini-3.7-flash` at `high` | `z-ai/glm-5.3-flash` at `high` |
+| auxiliary | `z-ai/glm-5.3-flash` | `z-ai/glm-5.3-flash` | `z-ai/glm-5.3-flash` |
+
+```bash
+python3 tools/team_models.py valuation --preset balanced          # after tools/install.sh --team valuation
+python3 tools/team_models.py valuation --preset frontier --provider openrouter
+python3 tools/team_models.py valuation --orchestrator anthropic/claude-fable-5.1 \
+        --strong meta/muse-spark-1.3 --fast z-ai/glm-5.3-flash    # or mix by hand
+python3 tools/team_models.py valuation --show
+```
+
+Per-profile picks for the standalone agents, same reasoning:
+
+| Profile | Start with | Why |
+|---|---|---|
+| `valuation-suite` | `meta/muse-spark-1.3`, plus `delegation.model: meta/muse-spark-1.3` | One model for orchestrator and children; frontier alternative `anthropic/claude-fable-5.1` + `delegation.model: anthropic/claude-opus-5` |
+| `superforecaster` | `meta/muse-spark-1.3` | Reasoning plus many web searches; frontier `anthropic/claude-fable-5.1` |
+| `product-strategist` | `anthropic/claude-opus-5` | Long-form prose for a lay reader is where the Claude family leads the pairwise evaluations |
+| `cognitive-design-architect` | `meta/muse-spark-1.3` | Design reasoning and D3 code; frontier `openai/gpt-6-astra` for the coding end |
+| `geometric-deep-learning-architect` | `openai/gpt-6-astra` at `high`, or `meta/muse-spark-1.3` to start | Maths plus PyTorch; GPT-6 Astra leads Terminal-Bench v4 |
+
+Reasoning effort: set it in the profile's `config.yaml` (`agent.reasoning_effort`).
+Each model accepts a specific set of levels, and Hermes caches that list per
+provider. For the picks above: Fable 5.1, GPT-6 Astra and Opus 5 take `low` to
+`max`. Muse Spark 1.3 takes `minimal` to `max`. GLM-5.3 and GLM-5.3-Flash take
+only `low`, `high` and `max`. Gemini 3.7 Flash takes `low` to `high`. The
+generated team configs use `high` for the strong and orchestrator tiers and
+`medium` for fast; edit them if a model rejects a level.
+
+## How to decide for real
+
+1. Install the team, apply `--preset balanced`, run one valuation of a company you
+   know well, and read the critic's findings and the reconciler's report.
+2. Move single stages up or down a tier with `hermes -p <member> model` and
+   re-run only that stage (the orchestrator resumes from `state.json`).
+3. Keep `auxiliary.*` on the cheapest model regardless; nothing there needs
+   reasoning.
+4. Re-check the leaderboards before committing to a long project. The rows
+   above were retrieved on 2026-09-09.

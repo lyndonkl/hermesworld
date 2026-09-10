@@ -5,9 +5,9 @@ The Claude Code version of the valuation team ran some agents on opus and some
 on sonnet. Hermes packages here pin no model, so installers keep their own
 credentials. This helper restores the split after `tools/install.sh --team`:
 
-    python3 tools/team_models.py valuation --strong anthropic/claude-opus-4.6 \
-                                           --fast anthropic/claude-sonnet-4.5
-    python3 tools/team_models.py valuation --strong <model> --fast <model> --provider openrouter
+    python3 tools/team_models.py valuation --preset balanced      # frontier | balanced | budget
+    python3 tools/team_models.py valuation --orchestrator <model> --strong <model> --fast <model>
+    python3 tools/team_models.py valuation --preset budget --strong meta/muse-spark-1.3   # preset + override
     python3 tools/team_models.py valuation --show
 
 It edits `model.default` (and `model.provider` when --provider is given) in
@@ -26,10 +26,22 @@ import yaml
 
 ROOT = Path(__file__).resolve().parent.parent
 
+# OpenRouter model ids per tier. Rationale and the benchmark rows behind them: docs/MODELS.md
+# (Artificial Analysis + OpenRouter prices as of 2026-09-09; re-check before relying on them).
+PRESETS = {
+    "frontier": {"orchestrator": "anthropic/claude-fable-5.1", "strong": "anthropic/claude-opus-5",
+                 "fast": "anthropic/claude-sonnet-5"},
+    "balanced": {"orchestrator": "meta/muse-spark-1.3", "strong": "meta/muse-spark-1.3",
+                 "fast": "google/gemini-3.7-flash"},
+    "budget":   {"orchestrator": "z-ai/glm-5.3", "strong": "z-ai/glm-5.3", "fast": "z-ai/glm-5.3-flash"},
+}
+
 
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("team")
+    ap.add_argument("--preset", choices=sorted(PRESETS), help="apply a named preset from docs/MODELS.md")
+    ap.add_argument("--orchestrator", help="model id for tier 'orchestrator'")
     ap.add_argument("--strong", help="model id for tier 'strong'")
     ap.add_argument("--fast", help="model id for tier 'fast'")
     ap.add_argument("--provider", help="provider to set alongside the model (default: keep existing)")
@@ -42,9 +54,12 @@ def main() -> int:
     team = yaml.safe_load(manifest.read_text(encoding="utf-8"))
     members = [team["orchestrator"], *team["members"]]
     home = Path(os.environ.get("HERMES_HOME") or Path.home() / ".hermes")
-    tiers = {"strong": args.strong, "fast": args.fast}
-    if not args.show and not any(tiers.values()):
-        ap.error("pass --strong and/or --fast, or --show")
+    tiers = dict(PRESETS[args.preset]) if args.preset else {}
+    for tier in ("orchestrator", "strong", "fast"):
+        if getattr(args, tier):
+            tiers[tier] = getattr(args, tier)
+    if not args.show and not tiers:
+        ap.error("pass --preset, or --orchestrator/--strong/--fast, or --show")
 
     changed = 0
     for m in members:

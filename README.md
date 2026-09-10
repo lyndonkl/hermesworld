@@ -76,7 +76,8 @@ turns. Optional model tiers for the team:
 python3 tools/team_models.py valuation --strong <model-id> --fast <model-id>
 ```
 
-See [packages/valuation-orchestrator/README.md](packages/valuation-orchestrator/README.md).
+See [packages/valuation-orchestrator/README.md](packages/valuation-orchestrator/README.md),
+and [docs/MODELS.md](docs/MODELS.md) for which model fits which agent and why.
 
 First prompts to try are in each package's README, for example
 [packages/valuation-suite/README.md](packages/valuation-suite/README.md).

@@ -1,6 +1,6 @@
 team: valuation
 title: Valuation orchestrator
-tier: strong
+tier: orchestrator
 description: 'Runs a company analysis end to end: fixes the mandate, classifies the
   company, dispatches the specialist stages in order, verifies the gates, and reconciles
   the verdict.'
