@@ -1,5 +1,14 @@
 #!/usr/bin/env python3
-"""Self-hosted Honcho memory for every profile in this repo, in four commands.
+"""Self-hosted Honcho memory for every profile in this repo.
+
+One command does everything and is safe to re-run; it checks each step and skips
+what is already done:
+
+    tools/memory.sh                        # = python3 tools/memory_setup.py start
+
+`start` = local model server (installs a LaunchAgent on Apple Silicon) -> Docker ->
+Honcho CLI -> env file -> Honcho stack on :8001 -> wire every installed profile ->
+status. The pieces are also available on their own:
 
     python3 tools/memory_setup.py up       # start the Honcho stack (Docker) on :8001, LLM jobs on your local model
     python3 tools/memory_setup.py wire     # point every hermesworld profile at it and create their peers
@@ -34,6 +43,7 @@ import shutil
 import subprocess
 import sys
 import time
+import urllib.parse
 import urllib.request
 from pathlib import Path
 
@@ -129,45 +139,145 @@ def render_env(args) -> str:
     return text
 
 
-def cmd_up(args) -> int:
-    if sh(["docker", "info"]).returncode != 0:
-        sys.exit("Docker is not running. Start Docker Desktop (or another daemon), then re-run.")
-    if shutil.which("honcho") is None:
-        if shutil.which("uv") is None:
-            sys.exit("Honcho CLI missing and uv not found; install uv, then `uv tool install honcho-cli`.")
-        print("installing honcho-cli...")
-        if subprocess.run(["uv", "tool", "install", "honcho-cli"]).returncode != 0:
-            sys.exit("could not install honcho-cli")
-    local_check = args.local_url.replace("host.docker.internal", "127.0.0.1")
-    if not health_models(local_check):
-        print(f"  warning: no model server answering at {local_check} — start tools/local_llm.sh "
-              f"in another terminal, or Honcho's LLM jobs will fail until it is up")
+def ensure_docker() -> None:
+    if sh(["docker", "info"]).returncode == 0:
+        return
+    if sys.platform == "darwin" and Path("/Applications/Docker.app").exists():
+        print("  Docker is not running; starting Docker Desktop...")
+        subprocess.run(["open", "-a", "Docker"])
+        for _ in range(60):
+            time.sleep(3)
+            if sh(["docker", "info"]).returncode == 0:
+                print("  Docker is up")
+                return
+        sys.exit("Docker Desktop did not come up within 3 minutes; open it by hand and re-run")
+    sys.exit("Docker is not running and could not be started. Install/start Docker, then re-run.")
+
+
+def ensure_honcho_cli() -> None:
+    if shutil.which("honcho"):
+        return
+    if shutil.which("uv") is None:
+        sys.exit("Honcho CLI missing and uv not found; install uv, then `uv tool install honcho-cli`.")
+    print("  installing honcho-cli...")
+    if subprocess.run(["uv", "tool", "install", "honcho-cli"]).returncode != 0:
+        sys.exit("could not install honcho-cli")
+
+
+def write_env(args) -> bool:
+    """Render the template into the Honcho profile .env; returns True when the file changed."""
     HONCHO_DIR.mkdir(parents=True, exist_ok=True)
     env_path = HONCHO_DIR / ".env"
     rendered = render_env(args)
     if env_path.is_file():
         ours = {l.split("=", 1)[0] for l in rendered.splitlines() if "=" in l and not l.startswith("#")}
         extra = [l for l in env_path.read_text(encoding="utf-8").splitlines()
-                 if "=" in l and not l.startswith("#") and l.split("=", 1)[0] not in ours]
+                 if "=" in l and not l.startswith("#") and l.split("=", 1)[0] not in ours
+                 and not l.startswith("# ---")]
         if extra:
             rendered += "\n# --- kept from the previous .env ---\n" + "\n".join(extra) + "\n"
-            print(f"  kept {len(extra)} existing setting(s) not managed by the template")
+        if env_path.read_text(encoding="utf-8") == rendered:
+            return False
     env_path.write_text(rendered, encoding="utf-8")
     print(f"  wrote {env_path}")
-    if args.no_start:
-        return 0
+    return True
+
+
+def start_stack(args) -> None:
     cmd = ["honcho", "start", "--profile", HONCHO_PROFILE, "--api-port", str(args.api_port)]
     print("  $ " + " ".join(cmd))
     if subprocess.run(cmd).returncode != 0:
-        sys.exit("honcho start failed; run it by hand to see the wizard/output")
+        sys.exit("honcho start failed; run it by hand to see the output")
     base = f"http://127.0.0.1:{args.api_port}"
     for _ in range(60):
         if health(base):
             print(f"  Honcho is up at {base}")
-            print(f"  next: python3 tools/memory_setup.py wire --base-url {base}")
-            return 0
+            return
         time.sleep(3)
     sys.exit(f"Honcho did not answer on {base}/health within 3 minutes; check `docker ps` and `honcho doctor`")
+
+
+def ensure_local_model(args) -> None:
+    """Local server answering with the model loaded; on Apple Silicon install the LaunchAgent if needed."""
+    local_check = args.local_url.replace("host.docker.internal", "127.0.0.1")
+    if health_models(local_check):
+        print(f"  local model server: up at {local_check}")
+        return
+    script = ROOT / "tools" / "local_llm.sh"
+    if not (sys.platform == "darwin" and os.uname().machine == "arm64"):
+        sys.exit(f"no model server at {local_check}. Start one (vLLM/Ollama/LM Studio) and pass "
+                 f"--local-url/--local-model, or run on Apple Silicon where {script.name} manages it.")
+    env = {**os.environ, "LOCAL_LLM_MODEL": args.local_model, "LOCAL_EMBED_MODEL": args.embed_model,
+           "LOCAL_LLM_PORT": str(urllib.parse.urlparse(local_check).port or 8000)}
+    status = sh(["bash", str(script), "--status"], env=env).stdout
+    if "LaunchAgent: loaded" not in status:
+        print("  installing the local model server as a LaunchAgent (first start downloads the model)...")
+        if subprocess.run(["bash", str(script), "--install-agent"], env=env).returncode != 0:
+            sys.exit("could not install the local model server")
+    log = Path.home() / "Library" / "Logs" / "hermesworld-local-llm.log"
+    deadline = time.time() + args.wait_minutes * 60
+    last_report = 0.0
+    print(f"  waiting for {args.local_model} to load (up to {args.wait_minutes} min; log: {log})")
+    while time.time() < deadline:
+        if health_models(local_check):
+            print("  local model server: up")
+            return
+        if time.time() - last_report > 60 and log.is_file():
+            lines = [l for l in log.read_text(errors="ignore").splitlines() if l.strip()]
+            if lines:
+                print("    " + lines[-1][-160:])
+            last_report = time.time()
+        time.sleep(10)
+    sys.exit(f"model server still not answering after {args.wait_minutes} minutes; see {log}")
+
+
+def cmd_start(args) -> int:
+    print("1/5 local model server"); ensure_local_model(args)
+    print("2/5 Docker"); ensure_docker()
+    print("3/5 Honcho CLI"); ensure_honcho_cli()
+    print("4/5 Honcho stack")
+    changed = write_env(args)
+    base = args.base_url
+    if health(base) and not changed:
+        print(f"  already running at {base}")
+    else:
+        if health(base) and changed:
+            print("  settings changed; restarting the stack")
+            subprocess.run(["honcho", "stop", "--profile", HONCHO_PROFILE])
+        start_stack(args)
+    print("5/5 wire profiles")
+    cfg_path = HERMES_HOME / "honcho.json"
+    hosts = (json.loads(cfg_path.read_text()) if cfg_path.is_file() else {}).get("hosts", {})
+    pending = []
+    for p in our_profiles():
+        c_path = HERMES_HOME / "profiles" / p["name"] / "config.yaml"
+        if not c_path.is_file():
+            continue
+        prov = ((yaml.safe_load(c_path.read_text()) or {}).get("memory") or {}).get("provider")
+        if prov != "honcho" or host_key(p["name"]) not in hosts:
+            pending.append(p["name"])
+    if pending:
+        args.profiles = pending
+        cmd_wire(args)
+    else:
+        print("  all installed profiles already wired")
+    print()
+    return cmd_status(args)
+
+
+def cmd_up(args) -> int:
+    ensure_docker()
+    ensure_honcho_cli()
+    local_check = args.local_url.replace("host.docker.internal", "127.0.0.1")
+    if not health_models(local_check):
+        print(f"  warning: no model server answering at {local_check} — run tools/local_llm.sh --install-agent, "
+              f"or Honcho's LLM jobs will fail until it is up")
+    write_env(args)
+    if args.no_start:
+        return 0
+    start_stack(args)
+    print(f"  next: python3 tools/memory_setup.py wire --base-url {args.base_url}")
+    return 0
 
 
 def health_models(base_url: str) -> bool:
@@ -278,7 +388,7 @@ def cmd_down(args) -> int:
 
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("command", choices=["up", "wire", "status", "down"])
+    ap.add_argument("command", choices=["start", "up", "wire", "status", "down"])
     ap.add_argument("--api-port", type=int, default=8001, help="host port for the Honcho API (default 8001; :8000 is the model server)")
     ap.add_argument("--base-url", default="http://127.0.0.1:8001", help="Honcho API URL as seen from Hermes")
     ap.add_argument("--local-url", default="http://host.docker.internal:8000/v1",
@@ -289,13 +399,14 @@ def main() -> int:
     ap.add_argument("--dialectic-high", default="z-ai/glm-5.3-flash",
                     help="OpenRouter model for dialectic high/max, or 'local' to keep everything on the local server")
     ap.add_argument("--no-start", action="store_true", help="up: render the env file but do not start the stack")
+    ap.add_argument("--wait-minutes", type=int, default=90, help="start: how long to wait for the local model to download and load")
     ap.add_argument("--peer-name", help="wire: your user peer name (default: $USER)")
     ap.add_argument("--profiles", type=lambda s: [x.strip() for x in s.split(",") if x.strip()], help="wire: subset, comma-separated")
     ap.add_argument("--include-default", action="store_true", help="wire: also attach the default ~/.hermes profile")
     ap.add_argument("--wipe", action="store_true", help="down: delete the stack's database volumes")
     ap.add_argument("--unwire", action="store_true", help="down: remove Honcho from the profiles' config and honcho.json")
     args = ap.parse_args()
-    return {"up": cmd_up, "wire": cmd_wire, "status": cmd_status, "down": cmd_down}[args.command](args)
+    return {"start": cmd_start, "up": cmd_up, "wire": cmd_wire, "status": cmd_status, "down": cmd_down}[args.command](args)
 
 
 if __name__ == "__main__":

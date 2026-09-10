@@ -84,16 +84,20 @@ and [docs/MODELS.md](docs/MODELS.md) for which model fits which agent and why.
 First prompts to try are in each package's README, for example
 [packages/valuation-suite/README.md](packages/valuation-suite/README.md).
 
-Optional, persistent memory across all profiles with a self-hosted Honcho stack
-running on a local model (Docker + Apple Silicon by default):
+Optional, persistent memory across all profiles: a self-hosted Honcho stack whose
+LLM work runs on a local model. One command, safe to re-run at any time; it checks
+each step and skips what is already done:
 
 ```bash
-tools/local_llm.sh                          # local model server on :8000 (keep running)
-python3 tools/memory_setup.py up            # Honcho stack on :8001, LLM jobs routed locally
-python3 tools/memory_setup.py wire --peer-name "Your Name"
+tools/memory.sh --peer-name "Your Name"
 ```
 
-Why Honcho, what it learns, local-model options and costs: [docs/MEMORY.md](docs/MEMORY.md).
+It installs the local model server as a login agent (Apple Silicon; first run
+downloads about 15 GB), starts Docker Desktop if needed, installs the Honcho CLI,
+starts Honcho on port 8001, wires every installed profile to it, and prints a
+status table. `tools/memory.sh` again later is the health check. Turn it off with
+`python3 tools/memory_setup.py down --unwire`. Why Honcho, what it learns,
+local-model options and costs: [docs/MEMORY.md](docs/MEMORY.md).
 
 ## Update, remove, and other install paths
 

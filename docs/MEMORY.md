@@ -57,46 +57,45 @@ Ollama, LM Studio. Point `tools/memory_setup.py up` at it with `--local-url` and
 `--local-model`, and pick a model that supports tool calling and is at least in
 the Qwen3.8 27B class.
 
-## Set-up
+## Set-up: one command
 
-Prerequisites: Docker Desktop running; `uv` installed; Hermes profiles installed
-from this repo (`tools/install.sh --all`); Python 3 with PyYAML.
-
-Ports: the model server keeps `:8000`; Honcho's API is put on `:8001` because
-Honcho's default is also 8000.
-
-```bash
-# 1. Local model server (first run downloads ~15 GB). Leave it running.
-tools/local_llm.sh                     # or: LOCAL_LLM_MODEL=mlx-community/Qwen3.8-27B-8bit tools/local_llm.sh
-tools/local_llm.sh --check             # from another terminal
-
-# 2. Honcho stack: renders infra/honcho/honcho.env.template into
-#    ~/.honcho/profiles/hermes/.env and runs `honcho start --profile hermes --api-port 8001`
-python3 tools/memory_setup.py up
-
-# 3. Wire every hermesworld profile to it and create the peers
-python3 tools/memory_setup.py wire --peer-name "Your Name"
-
-# 4. Check
-python3 tools/memory_setup.py status
-hermes -p valuation-orchestrator memory status
-```
-
-`up` reads your OpenRouter key from `~/.hermes/.env` for the two cloud dialectic
-levels. If the key is absent, those levels run locally too. `wire` does three
-things. It writes `~/.hermes/honcho.json` with a `hosts.hermes_<profile>` block per
-profile. It sets `memory.provider: honcho` in each profile's `config.yaml`. And it
-runs `hermes honcho sync` so the AI peers exist before the first chat. Your default
-`~/.hermes` profile is left alone unless you pass `--include-default`.
-
-Keep it running across reboots: enable "Start Docker Desktop when you sign in",
-and install the LaunchAgent in `infra/launchd/` for the model server (edit the
-two paths inside it first):
+Prerequisites: Docker Desktop installed (the command starts it); `uv` installed;
+Hermes profiles installed from this repo (`tools/install.sh --all`); Python 3 with
+PyYAML. Apple Silicon for the default local server; other machines pass
+`--local-url` and `--local-model` for a server they run themselves.
 
 ```bash
-cp infra/launchd/com.hermesworld.local-llm.plist ~/Library/LaunchAgents/
-launchctl load -w ~/Library/LaunchAgents/com.hermesworld.local-llm.plist
+tools/memory.sh --peer-name "Your Name"
 ```
+
+Every step is checked first and skipped when already done, so the same command is
+the installer, the restart after a reboot, and the health check:
+
+1. **Local model server.** If nothing answers on `:8000`, installs vllm-mlx with
+   `uv tool install`, writes a LaunchAgent (`com.hermesworld.local-llm`) so the
+   server starts at login and restarts if it dies, and waits for
+   `mlx-community/Qwen3.8-27B-4bit` plus the MiniLM embedding model to load. The
+   first start downloads about 15 GB; progress is in
+   `~/Library/Logs/hermesworld-local-llm.log`.
+2. **Docker.** Starts Docker Desktop if it is not running.
+3. **Honcho CLI.** `uv tool install honcho-cli` if missing.
+4. **Honcho stack.** Renders `infra/honcho/honcho.env.template` into
+   `~/.honcho/profiles/hermes/.env`, then `honcho start --profile hermes --api-port 8001`
+   unless it is already healthy. If the rendered settings changed, the stack is
+   restarted. Port 8001 because Honcho's default collides with the model server.
+5. **Wiring.** For every installed hermesworld profile not yet attached: a
+   `hosts.hermes_<profile>` block in `~/.hermes/honcho.json`, `memory.provider: honcho`
+   in the profile's `config.yaml`, then `hermes honcho sync` to create the AI peers.
+   Your default `~/.hermes` profile is left alone unless you pass `--include-default`.
+
+Then a status table: Honcho health, model server health, and per profile whether it
+is installed, its provider, and whether it has a host block.
+
+The OpenRouter key for the two cloud dialectic levels is read from `~/.hermes/.env`;
+without it those levels run locally too. Useful options: `--dialectic-high local`,
+`--local-model mlx-community/Qwen3.8-27B-8bit`, `--wait-minutes 180` on a slow link.
+The individual steps remain available as `python3 tools/memory_setup.py up|wire|status|down`
+and `tools/local_llm.sh --status|--stop`.
 
 ## What each profile is set to observe
 
