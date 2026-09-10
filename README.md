@@ -72,10 +72,10 @@ another Bot's chat. Nothing extra to configure; a Bot is a profile.
 The valuation **team** needs Bot Mode: open `valuation-orchestrator` from the Bots
 roster and give it a company. It sends each stage to the right specialist Bot with
 `message_agent`, which exists only in Bot Chats, and results come back between
-turns. Optional model tiers for the team:
+turns. The team ships on the "balanced" model preset; switch presets any time:
 
 ```bash
-python3 tools/team_models.py valuation --strong <model-id> --fast <model-id>
+python3 tools/team_models.py valuation --preset frontier    # or balanced | budget, or --show
 ```
 
 See [packages/valuation-orchestrator/README.md](packages/valuation-orchestrator/README.md),
