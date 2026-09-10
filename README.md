@@ -21,6 +21,7 @@ rules are written down in [AGENTS.md](AGENTS.md) and enforced by
 | [`superforecaster`](packages/superforecaster/) | Calibrated probability forecasts: reference class first, Fermi decomposition, Bayesian updating, premortem, bias check. | 8 skills: 5 forecasting methods, voice and prose checks |
 | [`cognitive-design-architect`](packages/cognitive-design-architect/) | Applies cognitive science to interfaces, data visualizations, educational content, and presentations, and explains why each choice works. | 8 skills: 6 design methods, prose checks |
 | [`geometric-deep-learning-architect`](packages/geometric-deep-learning-architect/) | Symmetry discovery, group identification, and equivariant neural-network design and audit. | 7 skills: 5 geometric deep learning methods, prose checks |
+| [`valuation-orchestrator`](packages/valuation-orchestrator/) + 14 specialist packages | The same valuation analysis as a **Bot team**: fifteen profiles, one per Claude agent, coordinated in the desktop's Bot Mode through `message_agent`. Each specialist keeps its own identity, memory, skills and model tier. Desktop only. | generated from the suite's briefs and finance skills |
 
 ## Prerequisites
 
@@ -37,7 +38,9 @@ rules are written down in [AGENTS.md](AGENTS.md) and enforced by
 ```bash
 git clone https://github.com/lyndonkl/hermesworld.git
 cd hermesworld
-tools/install.sh --all                 # or: tools/install.sh superforecaster
+tools/install.sh superforecaster       # one standalone agent
+tools/install.sh --team valuation      # the fifteen-Bot valuation team (desktop Bot Mode)
+tools/install.sh --all                 # everything
 ```
 
 `tools/install.sh` runs `hermes profile install ./packages/<name> --alias --yes`
@@ -63,6 +66,17 @@ In the desktop app every installed profile appears in the profile rail and, with
 Bot Mode on (Settings → Plugins → Bots), as a Bot in the roster: open its chat,
 give it a title and avatar, seat it in a group chat, or `@mention` it from
 another Bot's chat. Nothing extra to configure; a Bot is a profile.
+
+The valuation **team** needs Bot Mode: open `valuation-orchestrator` from the Bots
+roster and give it a company. It sends each stage to the right specialist Bot with
+`message_agent`, which exists only in Bot Chats, and results come back between
+turns. Optional model tiers for the team:
+
+```bash
+python3 tools/team_models.py valuation --strong <model-id> --fast <model-id>
+```
+
+See [packages/valuation-orchestrator/README.md](packages/valuation-orchestrator/README.md).
 
 First prompts to try are in each package's README, for example
 [packages/valuation-suite/README.md](packages/valuation-suite/README.md).
@@ -99,6 +113,15 @@ hermes skills install lyndonkl/hermesworld/packages/superforecaster/skills/forec
 | `product-strategist` cannot render a PDF | Install pandoc and a LaTeX engine (`brew install pandoc basictex` on macOS); markdown output is unaffected |
 | A profile name collides with a command on your PATH | `hermes profile install ./packages/<name> --name <other-name>` |
 
+## Two forms of the valuation analysis
+
+| | `valuation-suite` (one profile) | Bot team (fifteen profiles) |
+|---|---|---|
+| Works in | CLI, desktop, gateways | Desktop Bot Chats only |
+| Specialists are | stage briefs passed to anonymous `delegate_task` children | named Bots with their own SOUL, memory, skills, model tier |
+| Dispatch | one call, several parallel tasks, structured results | one `message_agent` job per Bot, replies as notifications |
+| Source of truth | the briefs and finance skills in `valuation-suite` | generated from the same files by `tools/build_team.py` |
+
 ## What is in a package
 
 ```
@@ -122,6 +145,7 @@ must be self-contained and may not contain symlinks.
 ```bash
 python3 tools/validate.py --selftest                    # every rule in AGENTS.md, plus script selftests
 python3 tools/sync_shared.py                            # propagate shared skills
+python3 tools/build_team.py valuation                   # regenerate the team packages from the briefs
 python3 tools/validate.py --hermes-src ~/.hermes/hermes-agent   # also run Hermes's own skill linter
 python3 tools/convert_claude_skill.py <claude-skill-dir> packages/<pkg>/skills/<cat>/<skill> --category <cat>
 ```

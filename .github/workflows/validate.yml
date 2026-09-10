@@ -16,6 +16,8 @@ jobs:
       - run: python3 -m pip install pyyaml
       - name: Shared skills are in sync
         run: python3 tools/sync_shared.py --check
+      - name: Generated team packages are up to date
+        run: python3 tools/build_team.py --check
       - name: Packages and skills meet the Hermes rules
         run: python3 tools/validate.py --selftest
       - name: Hermes upstream linter (advisory)

@@ -1,0 +1,5 @@
+team: valuation
+title: Company diagnostician
+tier: strong
+description: Classifies a company, routes it to the valuation treatment its type allows,
+  and compiles the constraints that bind every later stage.

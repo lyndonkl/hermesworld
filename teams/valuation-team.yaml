@@ -1,0 +1,148 @@
+# The valuation Bot team: one Hermes profile per Claude agent, coordinated in the
+# desktop's Bot Mode through `message_agent`.
+#
+# tools/build_team.py generates packages/<member>/ for every member from the
+# canonical sources in packages/valuation-suite/ (the stage briefs under
+# skills/valuation-specialists/ and the finance skills under
+# skills/corporate-finance/). Edit those sources, not the generated packages.
+#
+# tier: the Claude Code model tier the agent had (opus -> strong, sonnet -> fast).
+#       tools/team_models.py applies concrete models per tier after install.
+# skills: the skills bundled into that member's profile. The generator adds the
+#       dependency closure automatically (sibling scripts, cross-skill loads).
+# description: the roster line other Bots see (kept under 160 characters).
+
+team: valuation
+version: 1.0.0
+orchestrator:
+  name: valuation-orchestrator
+  title: Valuation orchestrator
+  tier: strong
+  description: >-
+    Runs a company analysis end to end: fixes the mandate, classifies the company,
+    dispatches the specialist stages in order, verifies the gates, and reconciles the verdict.
+  skills: [company-classification-routing, valuation-consistency-checks, dcf-valuation-engine]
+
+members:
+  - name: financial-data-collector
+    title: Financial data collector
+    tier: fast
+    description: >-
+      Gathers every input an analysis needs: filings, footnotes, market data, macro series
+      and reference tables, and reports honestly what it could not find.
+    skills: [financial-data-sourcing, cost-of-capital-toolkit, company-classification-routing]
+
+  - name: company-diagnostician
+    title: Company diagnostician
+    tier: strong
+    description: >-
+      Classifies a company, routes it to the valuation treatment its type allows, and compiles
+      the constraints that bind every later stage.
+    skills: [company-classification-routing, financial-statement-normalization, cost-of-capital-toolkit,
+             relative-valuation-toolkit, special-situation-models, valuation-consistency-checks,
+             corporate-governance-analysis, valuation-playbooks]
+
+  - name: business-narrative-analyst
+    title: Business narrative analyst
+    tier: strong
+    description: >-
+      Writes the business story behind a valuation, grades each claim as possible, plausible or
+      probable, and maps it to the drivers the DCF consumes.
+    skills: [narrative-to-numbers, dcf-valuation-engine, company-classification-routing,
+             option-valuation-toolkit, cost-of-capital-toolkit, valuation-playbooks]
+
+  - name: financial-statement-analyst
+    title: Financial statement analyst
+    tier: fast
+    description: >-
+      Repairs reported statements into a valuation base: trailing twelve months, capitalized
+      leases and R&D, one-offs removed, EBIT and invested capital restated together.
+    skills: [financial-statement-normalization, cost-of-capital-toolkit, dcf-valuation-engine, valuation-playbooks]
+
+  - name: cost-of-capital-analyst
+    title: Cost of capital analyst
+    tier: fast
+    description: >-
+      Estimates and defends the discount rate: riskfree rate in the mandate currency,
+      operation-weighted equity risk premium, bottom-up beta, cost of debt, market-value weights.
+    skills: [cost-of-capital-toolkit, valuation-consistency-checks, valuation-playbooks]
+
+  - name: intrinsic-valuation-analyst
+    title: Intrinsic valuation analyst
+    tier: strong
+    description: >-
+      Runs the DCF from drivers to a value per share, then says what the market price assumes.
+    skills: [dcf-valuation-engine, option-valuation-toolkit, valuation-consistency-checks,
+             payout-policy-analysis, valuation-playbooks]
+
+  - name: relative-valuation-analyst
+    title: Relative valuation analyst
+    tier: fast
+    description: >-
+      Prices the company against peers and the market with consistent multiples and regressions,
+      and says when a multiple is not usable.
+    skills: [relative-valuation-toolkit, option-valuation-toolkit, financial-statement-normalization,
+             valuation-consistency-checks]
+
+  - name: special-situations-analyst
+    title: Special situations analyst
+    tier: strong
+    description: >-
+      Values what a standard DCF cannot: banks and insurers, pre-revenue and young firms,
+      distressed, cyclical and private companies.
+    skills: [special-situation-models, dcf-valuation-engine, option-valuation-toolkit, cost-of-capital-toolkit,
+             financial-statement-normalization, monte-carlo-valuation, valuation-consistency-checks,
+             valuation-playbooks]
+
+  - name: capital-structure-analyst
+    title: Capital structure analyst
+    tier: strong
+    description: >-
+      Finds how much debt a firm should carry and what kind, prices the move to the optimum,
+      and stress-tests it at recessionary operating income.
+    skills: [cost-of-capital-toolkit, debt-design, project-investment-analysis, relative-valuation-toolkit,
+             valuation-playbooks]
+
+  - name: payout-policy-analyst
+    title: Payout policy analyst
+    tier: fast
+    description: >-
+      Judges whether the company returns the right amount of cash to its owners, and in the
+      right form, against the free cash flow to equity it generates.
+    skills: [payout-policy-analysis, valuation-playbooks]
+
+  - name: investment-analyst
+    title: Investment analyst
+    tier: strong
+    description: >-
+      Evaluates projects and acquisitions on incremental cash flows: NPV, IRR, value of control,
+      synergy, and the maximum price to pay.
+    skills: [project-investment-analysis, cost-of-capital-toolkit, dcf-valuation-engine,
+             monte-carlo-valuation, valuation-playbooks]
+
+  - name: real-options-analyst
+    title: Real options analyst
+    tier: strong
+    description: >-
+      Values genuine embedded optionality (expansion, abandonment, delay, equity in troubled
+      firms) and rejects the candidates that only look like options.
+    skills: [option-valuation-toolkit, monte-carlo-valuation, valuation-playbooks]
+
+  - name: valuation-critic
+    title: Valuation critic
+    tier: strong
+    description: >-
+      Attacks the finished analysis for bias, double counting and unsupported growth, and
+      raises findings for the owning stage to fix. Never edits the work it reviews.
+    skills: [valuation-red-team, valuation-consistency-checks, dcf-valuation-engine,
+             financial-statement-normalization, relative-valuation-toolkit, option-valuation-toolkit,
+             cost-of-capital-toolkit, project-investment-analysis, monte-carlo-valuation, valuation-playbooks]
+
+  - name: investment-reconciler
+    title: Investment reconciler
+    tier: strong
+    description: >-
+      Reconciles every strand into one verdict with a range and a margin of safety, and writes
+      the report a decision-maker reads.
+    skills: [valuation-reporting, valuation-consistency-checks, dcf-valuation-engine, valuation-playbooks,
+             readability-check]
