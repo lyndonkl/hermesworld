@@ -31,7 +31,7 @@ Bot, Bot Chat and teammate message are in the repository README under "Words use
 | `investment-reconciler` | Verdict, range, margin of safety, the report | writer |
 
 Tiers map to OpenRouter models pinned in each member's `config.yaml`: orchestrator and
-strong on `meta/muse-spark-1.3`, fast and writer on `google/gemini-3.7-flash`, housekeeping
+strong on `z-ai/glm-5.3-flash`, fast and writer on `google/gemini-3.7-flash`, housekeeping
 on `z-ai/glm-5.3-flash`. Change them all at once with `tools/team_models.py` or one at a time
 with `hermes -p <member> model`; the reasoning is in `docs/MODELS.md`.
 

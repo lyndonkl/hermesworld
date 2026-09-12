@@ -37,7 +37,7 @@ Or directly with Hermes:
 hermes profile install ./packages/geometric-deep-learning-architect --alias
 ```
 
-`config.yaml` pins `meta/muse-spark-1.3` on OpenRouter at high effort; for hard derivations switch to `openai/gpt-6-astra`, the Terminal-Bench v4 leader, with `hermes -p geometric-deep-learning-architect model` (`docs/MODELS.md`). Running equivariance tests requires Python with PyTorch, plus e3nn, escnn, or pytorch_geometric as the design calls for, in the environment where the agent's `terminal` runs.
+`config.yaml` pins `z-ai/glm-5.3-flash` on OpenRouter at high effort; for hard derivations switch to `openai/gpt-6-astra`, the Terminal-Bench v4 leader, with `hermes -p geometric-deep-learning-architect model` (`docs/MODELS.md`). Running equivariance tests requires Python with PyTorch, plus e3nn, escnn, or pytorch_geometric as the design calls for, in the environment where the agent's `terminal` runs.
 
 ## First prompts to try
 

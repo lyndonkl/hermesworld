@@ -145,10 +145,10 @@ Per-profile picks for the standalone agents, same reasoning:
 
 | Profile | Start with | Why |
 |---|---|---|
-| `superforecaster` | `meta/muse-spark-1.3` | Reasoning plus many web searches; frontier `anthropic/claude-fable-5.1` |
-| `product-strategist` | `meta/muse-spark-1.3` for research, `delegation.model: google/gemini-3.7-flash` for the report | Reasoning and news curation first; the writing model drafts the report as a delegated child |
-| `cognitive-design-architect` | `meta/muse-spark-1.3` | Design reasoning and D3 code; frontier `openai/gpt-6-astra` for the coding end |
-| `geometric-deep-learning-architect` | `openai/gpt-6-astra` at `high`, or `meta/muse-spark-1.3` to start | Maths plus PyTorch; GPT-6 Astra leads Terminal-Bench v4 |
+| `superforecaster` | `z-ai/glm-5.3-flash` | Reasoning plus many web searches; frontier `anthropic/claude-fable-5.1` |
+| `product-strategist` | `z-ai/glm-5.3-flash` for research, `delegation.model: google/gemini-3.7-flash` for the report | Reasoning and news curation first; the writing model drafts the report as a delegated child |
+| `cognitive-design-architect` | `z-ai/glm-5.3-flash` | Design reasoning and D3 code; frontier `openai/gpt-6-astra` for the coding end |
+| `geometric-deep-learning-architect` | `openai/gpt-6-astra` at `high`, or `z-ai/glm-5.3-flash` to start | Maths plus PyTorch; GPT-6 Astra leads Terminal-Bench v4 |
 
 Reasoning effort: set it in the profile's `config.yaml` (`agent.reasoning_effort`).
 Each model accepts a specific set of levels. On OpenRouter, Hermes rounds a level

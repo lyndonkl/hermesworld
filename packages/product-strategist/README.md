@@ -128,7 +128,7 @@ packages in this repository and are synced from `shared/skills/`.
 
 ## Models
 
-Two models, both on OpenRouter and both changeable in `config.yaml`: `meta/muse-spark-1.3`
+Two models, both on OpenRouter and both changeable in `config.yaml`: `z-ai/glm-5.3-flash`
 does the research, curation and analysis; a delegated child on `google/gemini-3.7-flash`
 (`delegation.model`) writes the report and runs the comprehension pass, because that model
 leads the non-Anthropic rows of the human creative-writing leaderboard. Rationale and
