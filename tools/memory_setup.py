@@ -267,11 +267,21 @@ def cmd_up(args) -> int:
 # Hermes-side cadence per kind of profile. The dialectic is an LLM call before a reply,
 # so specialists (which mostly execute a fixed procedure) ask for it less often and at the
 # lightest level; the orchestrator and standalone agents keep the default level.
+#
+# contextTokens is the budget for the memory block Hermes attaches to every turn. Hermes fills
+# it in a fixed order (session summary, facts about the user, cards, the dialectic) and cuts
+# at the budget. Measured on real turns: the session summary alone runs to ~11,000 characters
+# (~2,750 tokens), the fact list 700-900 tokens, the dialectic up to 150; at the old 1,600
+# the cut landed inside the summary and everything after it, including the dialectic that
+# had just been paid for, was dropped. 6,000 fits the whole block with headroom.
 TUNING = {
-    "member": {"dialecticCadence": 4, "dialecticReasoningLevel": "minimal", "contextTokens": 1200},
-    "orchestrator": {"dialecticCadence": 3, "dialecticReasoningLevel": "low", "contextTokens": 1600},
-    "standalone": {"dialecticCadence": 3, "dialecticReasoningLevel": "low", "contextTokens": 1600},
+    "member": {"dialecticCadence": 4, "dialecticReasoningLevel": "minimal", "contextTokens": 6000},
+    "orchestrator": {"dialecticCadence": 3, "dialecticReasoningLevel": "low", "contextTokens": 6000},
+    "standalone": {"dialecticCadence": 3, "dialecticReasoningLevel": "low", "contextTokens": 6000},
 }
+# Values this script wrote in earlier versions. A block still carrying one of them is updated to
+# the current default; any other value is a hand edit and is left alone.
+SUPERSEDED = {"contextTokens": {1200, 1600}}
 
 
 def apply_tuning(cfg: dict) -> int:
@@ -282,9 +292,10 @@ def apply_tuning(cfg: dict) -> int:
         if not isinstance(block, dict):
             continue
         for k, v in TUNING[p["kind"]].items():
-            if k not in block:
-                block[k] = v
-                n += 1
+            if k not in block or block[k] in SUPERSEDED.get(k, ()):
+                if block.get(k) != v:
+                    block[k] = v
+                    n += 1
     return n
 
 

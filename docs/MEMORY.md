@@ -117,11 +117,21 @@ it less often on specialist Bots
 agents (cadence 3 at `low`). All of those are per-profile keys in
 `~/.hermes/honcho.json` and can be changed by hand.
 
+The memory block Hermes attaches to each turn has a budget, `contextTokens`, set to
+6,000 tokens for every profile. Hermes fills the block in a fixed order: the session
+summary, then facts about you, then the peer cards, then the dialectic, and cuts at the
+budget. On real turns the summary alone is about 11,000 characters, so a smaller budget
+cut inside the summary and silently dropped everything after it, including the dialectic
+that had just been paid for. 6,000 holds the whole block with room to spare. The block is
+resent on every turn and stays in the conversation until compaction, which is why it is
+capped at all.
+
 ## Limits to know
 
 - One external provider per profile; Honcho and Mem0 cannot share a profile.
 - The injected dialectic is capped at 600 characters by default
-  (`dialecticMaxChars`); the base context is uncapped unless you set `contextTokens`.
+  (`dialecticMaxChars`); the whole memory block is capped by `contextTokens` (6,000 here;
+  Honcho's own default is no cap).
 - Embedding dimensions are fixed at stack creation. Changing the embedding model
   later means `python3 tools/memory_setup.py down --wipe` and starting over.
 - Sessions map to directories by default (`sessionStrategy: per-directory`), so a

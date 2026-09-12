@@ -180,6 +180,8 @@ hermes skills install lyndonkl/hermesworld/packages/superforecaster/skills/forec
 | `product-strategist` cannot render a PDF | Install pandoc and a LaTeX engine (`brew install pandoc basictex` on macOS); markdown output is unaffected |
 | A profile name collides with a command on your PATH | `hermes profile install ./packages/<name> --name <other-name>` |
 | The orchestrator's chat says it `already has a live owner` | It is open somewhere else (the desktop or a terminal). Close it there, then retry |
+| Clicking a Bot in the desktop does nothing for a while | The desktop keeps only three profile backends warm and queues the rest. Raise **Warm bot backends** under Settings, Advanced (8 is plenty), or wait a minute after a restart |
+| A Bot keeps asking you to approve commands | Hermes's security scan escalates script-style commands. Type `/yolo` in that chat to auto-approve for the session, or pick "Always approve" on the prompt. `approvals.mode: off` in a profile's `config.yaml` turns the checks off for that profile |
 | In the desktop, a new chat shows a different model than the profile pins | The desktop's composer remembers the last model you picked and applies it to every new chat, silently, without changing the profile. Click the model pill in the composer and pick the profile's model (or its default entry); the profile's `config.yaml` was never changed. `hermes profile show <name>` prints the pinned model |
 
 ## What is in a package
