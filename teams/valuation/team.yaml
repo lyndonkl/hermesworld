@@ -13,16 +13,16 @@
 # description: the roster line other Bots see (kept under 160 characters).
 
 team: valuation
-version: 1.2.0
+version: 1.3.0
 
 # Models per tier, pinned into each generated config.yaml (the "balanced" preset in
-# docs/MODELS.md; Artificial Analysis + OpenRouter data of 2026-09-09). Change with
+# docs/MODELS.md; Artificial Analysis + OpenRouter data of 2026-09-12). Change with
 # `python3 tools/team_models.py valuation --preset ...` after install, or edit here and
 # rebuild. `writer` is the report-writing tier: strong at prose, never Opus.
 provider: openrouter
 models:
-  orchestrator: meta/muse-spark-1.3
-  strong: meta/muse-spark-1.3
+  orchestrator: z-ai/glm-5.3-flash
+  strong: z-ai/glm-5.3-flash
   fast: google/gemini-3.7-flash
   writer: google/gemini-3.7-flash
 effort:

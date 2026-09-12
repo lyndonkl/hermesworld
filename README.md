@@ -54,8 +54,8 @@ model chosen for its workload (the "balanced" preset in
 the installer also copies the pinned provider's API key from your root
 `~/.hermes/.env` into each new profile's own `.env`, locally and with mode 600.
 No key is ever part of this repository. Some OpenRouter models, Meta's Muse
-Spark among them, need a one-time 18+ confirmation in your OpenRouter account
-settings before they answer.
+Spark among them (offered here as the `spark` preset), need a one-time 18+
+confirmation in your OpenRouter account settings before they answer.
 
 Verify:
 

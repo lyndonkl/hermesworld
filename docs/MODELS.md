@@ -53,17 +53,24 @@ higher is better. Blanks mean the row was not in the tables retrieved.
 | GLM-5.3 (max) | 45 | 1515 | 1675 | | `z-ai/glm-5.3` | 1.40 / 4.40 |
 | Grok 4.6 (xhigh) | 44 | 1545 | 1663 | | `x-ai/grok-4.6` | 2 / 6 |
 | Kimi K3 (max) | 44 | 1497 | 1584 | AA-LCR 88.7% (best) | `moonshotai/kimi-k3` | 3 / 15 |
-| GLM-5.3-Flash | 42 | | 1669 | | `z-ai/glm-5.3-flash` | 0.07 / 0.23 |
-| Qwen3.8-Flash-Next | 40 | 1587 | 1647 | | `qwen/qwen3.8-flash` (name mapping unverified) | 0.15 / 0.47 |
+| GLM-5.3-Flash | 42 | 1449 | 1656 | 1M window at 25 of 27 OpenRouter providers | `z-ai/glm-5.3-flash` | 0.07 / 0.25 |
+| DeepSeek V4.1 Flash (max) | 40 | 1424 | 1632 | 217 tokens/s; very verbose (250M tokens on the index) | `deepseek/deepseek-v4.1-flash` | 0.15 / 0.60 |
+| Qwen3.8-Flash-Next | 40 | 1587 | 1647 | 256K window and 52 tokens/s on the benchmarked API; OpenRouter's `Qwen3.8 Flash` lists 1M, so it may be a different variant | `qwen/qwen3.8-flash` (mapping unconfirmed) | 0.15 / 0.47 |
+| Gemini 3.8 Flash (high) | 41 | 1202 | 1464 | 272 tokens/s | `google/gemini-3.8-flash` | 0.75 / 3.75 |
+| GPT-5.6 Luna (max) | 38 | 1339 | 1489 | cheapest per index task ($0.18) but weak on both agentic tables | `openai/gpt-5.6-luna` | 0.20 / 1.20 |
 | Gemini 3.7 Flash (high) | | | | AA-AnalystAgent 60.0% pass^5 (best) | `google/gemini-3.7-flash` | 0.75 / 3.75 |
 | Claude Sonnet 5 | | | | not in the retrieved rows | `anthropic/claude-sonnet-5` | 2 / 10 |
-| DeepSeek V4 Pro / Flash | | | | not in the retrieved rows | `deepseek/deepseek-v4-pro`, `deepseek/deepseek-v4-flash` | 0.96 / 1.91, 0.09 / 0.18 |
 
 Two things stand out. Muse Spark 1.3 sits within about 60 Elo of the frontier on
 both agentic evaluations at an eighth of the price and three times the speed.
-GLM-5.3-Flash scores 1669 on GDPval-AA at $0.07 per million input tokens, which
-makes it hard to justify anything dearer for procedure work until a real run
-shows it failing.
+GLM-5.3-Flash sits 47 Elo behind Muse Spark on agentic real-world work and 140 behind
+on long-horizon work, at one eighteenth of the input price.
+
+The shipped default moved from Muse Spark to GLM-5.3-Flash on 2026-09-12 (rows for the
+newer models were added that day). Three full valuation runs on Muse Spark put it at 46%
+of all tokens and most of the bill; on the measured token mix the same work costs about
+one fifteenth on GLM-5.3-Flash. Muse Spark is kept as the `spark` preset for anyone who
+wants the extra depth on the orchestrator and the judgment specialists.
 
 ## A writing model, for reports
 
@@ -107,13 +114,18 @@ Where the writer tier is used:
 `tools/team_models.py` applies these to the installed team; the same ids work
 for `hermes -p <name> model` on the standalone agents.
 
-| Tier | frontier | balanced (shipped default) | budget |
-|---|---|---|---|
-| `orchestrator` | `anthropic/claude-fable-5.1` at `xhigh` | `meta/muse-spark-1.3` at `high` | `z-ai/glm-5.3` at `high` |
-| `strong` | `anthropic/claude-opus-5` at `xhigh` | `meta/muse-spark-1.3` at `high` | `z-ai/glm-5.3` at `high` |
-| `fast` | `anthropic/claude-sonnet-5` at `high` | `google/gemini-3.7-flash` at `medium` | `z-ai/glm-5.3-flash` at `high` |
-| `writer` | `openai/gpt-5.6-sol` at `xhigh` | `google/gemini-3.7-flash` at `high` | `google/gemini-3.7-flash` at `high` |
-| auxiliary | `z-ai/glm-5.3-flash` | `z-ai/glm-5.3-flash` | `z-ai/glm-5.3-flash` |
+| Tier | frontier | balanced (shipped default) | spark | budget |
+|---|---|---|---|---|
+| `orchestrator` | `anthropic/claude-fable-5.1` at `xhigh` | `z-ai/glm-5.3-flash` at `high` | `meta/muse-spark-1.3` at `high` | `z-ai/glm-5.3-flash` at `high` |
+| `strong` | `anthropic/claude-opus-5` at `xhigh` | `z-ai/glm-5.3-flash` at `high` | `meta/muse-spark-1.3` at `high` | `z-ai/glm-5.3-flash` at `high` |
+| `fast` | `anthropic/claude-sonnet-5` at `high` | `google/gemini-3.7-flash` at `medium` | `google/gemini-3.7-flash` at `medium` | `z-ai/glm-5.3-flash` at `medium` |
+| `writer` | `openai/gpt-5.6-sol` at `xhigh` | `google/gemini-3.7-flash` at `high` | `google/gemini-3.7-flash` at `high` | `google/gemini-3.7-flash` at `high` |
+| auxiliary | `z-ai/glm-5.3-flash` | `z-ai/glm-5.3-flash` | `z-ai/glm-5.3-flash` | `z-ai/glm-5.3-flash` |
+
+`balanced` keeps Gemini 3.7 Flash on the procedure tier because it leads AA-AnalystAgent,
+the spreadsheet-and-document benchmark closest to that work; `budget` puts GLM-5.3-Flash
+there too. GLM-5.3-Flash has one 4-bit provider on OpenRouter (the cheapest one); set
+OpenRouter provider preferences if you want to avoid it.
 
 The balanced column is what every package now ships in its `config.yaml` (provider
 `openrouter`), so a fresh install already runs on these. The team's picks live in

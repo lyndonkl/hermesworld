@@ -6,7 +6,7 @@ on sonnet. Every package here ships a model per tier in its config.yaml (see
 docs/MODELS.md); this helper switches the installed profiles to another preset,
 or to models you name, after `tools/install.sh --team`:
 
-    python3 tools/team_models.py valuation --preset balanced      # frontier | balanced | budget
+    python3 tools/team_models.py valuation --preset balanced      # frontier | balanced | spark | budget
     python3 tools/team_models.py valuation --orchestrator <model> --strong <model> --fast <model>
     python3 tools/team_models.py valuation --preset budget --strong meta/muse-spark-1.3   # preset + override
     python3 tools/team_models.py valuation --show
@@ -32,9 +32,11 @@ ROOT = Path(__file__).resolve().parent.parent
 PRESETS = {
     "frontier": {"orchestrator": "anthropic/claude-fable-5.1", "strong": "anthropic/claude-opus-5",
                  "fast": "anthropic/claude-sonnet-5", "writer": "openai/gpt-5.6-sol"},
-    "balanced": {"orchestrator": "meta/muse-spark-1.3", "strong": "meta/muse-spark-1.3",
+    "balanced": {"orchestrator": "z-ai/glm-5.3-flash", "strong": "z-ai/glm-5.3-flash",
                  "fast": "google/gemini-3.7-flash", "writer": "google/gemini-3.7-flash"},
-    "budget":   {"orchestrator": "z-ai/glm-5.3", "strong": "z-ai/glm-5.3", "fast": "z-ai/glm-5.3-flash",
+    "spark":    {"orchestrator": "meta/muse-spark-1.3", "strong": "meta/muse-spark-1.3",
+                 "fast": "google/gemini-3.7-flash", "writer": "google/gemini-3.7-flash"},
+    "budget":   {"orchestrator": "z-ai/glm-5.3-flash", "strong": "z-ai/glm-5.3-flash", "fast": "z-ai/glm-5.3-flash",
                  "writer": "google/gemini-3.7-flash"},
 }
 
