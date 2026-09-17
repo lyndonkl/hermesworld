@@ -55,3 +55,9 @@ auxiliary:
   memory_query_rewrite:
     provider: openrouter
     model: z-ai/glm-5.3-flash
+  vision:
+    provider: openrouter
+    model: google/gemini-3.8-flash
+
+memory:
+  provider: honcho
