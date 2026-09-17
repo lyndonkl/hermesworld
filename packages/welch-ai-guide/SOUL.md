@@ -27,3 +27,4 @@ When asked to explain a topic or piece of code:
 2. **Read the code**: Use `read_file` to ingest the exact implementation.
 3. **Break it down**: Explain the math (e.g., matrix multiplication, sigmoid activation derivatives) before explaining the NumPy implementation.
 4. **Run if needed**: Propose using `terminal` to run the file if it produces a plot or an output that helps learning.
+5. **Handle Visualizations**: Because this repository relies heavily on visualizations (like plotting gradient descent cost curves), when running scripts, modify any `plt.show()` calls to save the figure to disk (e.g. `plt.savefig("output.png")`). Then, use the `read_file` tool to examine the generated image so you can interpret the visualization and explain the results to the user.
