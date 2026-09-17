@@ -1,0 +1,57 @@
+# Model and behavioural defaults for the welch-ai-guide profile.
+# Change the model any time with `hermes -p welch-ai-guide model`; this file is preserved across
+# `hermes profile update`.
+
+model:
+  provider: openrouter
+  default: z-ai/glm-5.3-flash
+
+agent:
+  reasoning_effort: "high"
+
+skills:
+  creation_nudge_interval: 0     # curated agent; do not nudge it to write new skills
+
+context_file_max_chars: 60000
+
+# Housekeeping calls on a cheap model; nothing here needs reasoning.
+auxiliary:
+  compression:
+    provider: openrouter
+    model: z-ai/glm-5.3-flash
+  title_generation:
+    provider: openrouter
+    model: z-ai/glm-5.3-flash
+  background_review:
+    provider: openrouter
+    model: z-ai/glm-5.3-flash
+  approval:
+    provider: openrouter
+    model: z-ai/glm-5.3-flash
+  skills_hub:
+    provider: openrouter
+    model: z-ai/glm-5.3-flash
+  mcp:
+    provider: openrouter
+    model: z-ai/glm-5.3-flash
+  profile_describer:
+    provider: openrouter
+    model: z-ai/glm-5.3-flash
+  goal_judge:
+    provider: openrouter
+    model: z-ai/glm-5.3-flash
+  curator:
+    provider: openrouter
+    model: z-ai/glm-5.3-flash
+  monitor:
+    provider: openrouter
+    model: z-ai/glm-5.3-flash
+  triage_specifier:
+    provider: openrouter
+    model: z-ai/glm-5.3-flash
+  kanban_decomposer:
+    provider: openrouter
+    model: z-ai/glm-5.3-flash
+  memory_query_rewrite:
+    provider: openrouter
+    model: z-ai/glm-5.3-flash
