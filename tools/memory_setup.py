@@ -320,19 +320,48 @@ def cmd_wire(args) -> int:
     cfg.setdefault("timeout", 120)
     hosts = cfg.setdefault("hosts", {})
     if args.include_default:
-        hosts.setdefault(HOST_ROOT, {}).update({"enabled": True, "aiPeer": HOST_ROOT, "workspace": WORKSPACE, "peerName": peer})
+        hosts.setdefault(HOST_ROOT, {}).update({"enabled": True, "aiPeer": HOST_ROOT, "workspace": WORKSPACE, "peerName": peer, "apiKey": "local"})
     elif HOST_ROOT not in hosts:
         # `hermes honcho sync` inherits from the default block and refuses without one; keep the
         # default ~/.hermes profile itself detached (enabled: false).
-        hosts[HOST_ROOT] = {"enabled": False, "aiPeer": HOST_ROOT, "workspace": WORKSPACE, "peerName": peer}
+        hosts[HOST_ROOT] = {"enabled": False, "aiPeer": HOST_ROOT, "workspace": WORKSPACE, "peerName": peer, "apiKey": "local"}
     for p in wanted:
         block = hosts.setdefault(host_key(p["name"]), {})
-        block.update({"enabled": True, "aiPeer": p["name"], "workspace": WORKSPACE, "peerName": peer})
+        block.update({"enabled": True, "aiPeer": p["name"], "workspace": WORKSPACE, "peerName": peer, "apiKey": "local"})
         if p["kind"] == "member":
             block.setdefault("observation", STRONG_PERSONA)
     apply_tuning(cfg)
     cfg_path.write_text(json.dumps(cfg, indent=2) + "\n", encoding="utf-8")
     print(f"  wrote {cfg_path} ({len(wanted)} host block(s), workspace '{WORKSPACE}', user peer '{peer}')")
+
+    # Hermes's resolve_config_path() checks $HERMES_HOME/honcho.json first (the profile-
+    # local copy) before falling back to the root ~/.hermes/honcho.json.  Previous runs of
+    # `hermes honcho sync` or `hermes honcho setup` may have created per-profile copies that
+    # shadow the root config; update them so every profile sees the correct host block.
+    n_profile_cfgs = 0
+    for p in wanted:
+        profile_cfg_path = HERMES_HOME / "profiles" / p["name"] / "honcho.json"
+        if not profile_cfg_path.is_file():
+            continue
+        try:
+            pcfg = json.loads(profile_cfg_path.read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, OSError):
+            pcfg = {}
+        pcfg["baseUrl"] = base
+        pcfg.setdefault("timeout", 120)
+        phosts = pcfg.setdefault("hosts", {})
+        # Ensure the default host block exists (hermes honcho sync inherits from it).
+        if HOST_ROOT not in phosts:
+            phosts[HOST_ROOT] = {"enabled": False, "aiPeer": HOST_ROOT, "workspace": WORKSPACE, "peerName": peer, "apiKey": "local"}
+        pblock = phosts.setdefault(host_key(p["name"]), {})
+        pblock.update({"enabled": True, "aiPeer": p["name"], "workspace": WORKSPACE, "peerName": peer, "apiKey": "local"})
+        if p["kind"] == "member":
+            pblock.setdefault("observation", STRONG_PERSONA)
+        apply_tuning(pcfg)
+        profile_cfg_path.write_text(json.dumps(pcfg, indent=2) + "\n", encoding="utf-8")
+        n_profile_cfgs += 1
+    if n_profile_cfgs:
+        print(f"  updated {n_profile_cfgs} profile-local honcho.json file(s)")
 
     for p in wanted:
         c_path = HERMES_HOME / "profiles" / p["name"] / "config.yaml"
@@ -391,6 +420,17 @@ def cmd_down(args) -> int:
             for p in our_profiles():
                 (cfg.get("hosts") or {}).pop(host_key(p["name"]), None)
             cfg_path.write_text(json.dumps(cfg, indent=2) + "\n", encoding="utf-8")
+        # Also clean up profile-local honcho.json files (symmetric with cmd_wire).
+        for p in our_profiles():
+            profile_cfg_path = HERMES_HOME / "profiles" / p["name"] / "honcho.json"
+            if not profile_cfg_path.is_file():
+                continue
+            try:
+                pcfg = json.loads(profile_cfg_path.read_text(encoding="utf-8"))
+            except (json.JSONDecodeError, OSError):
+                continue
+            (pcfg.get("hosts") or {}).pop(host_key(p["name"]), None)
+            profile_cfg_path.write_text(json.dumps(pcfg, indent=2) + "\n", encoding="utf-8")
         n = 0
         for p in our_profiles():
             c_path = HERMES_HOME / "profiles" / p["name"] / "config.yaml"
