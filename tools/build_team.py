@@ -313,8 +313,8 @@ def _write_package(pkg: Path, member: dict, team: dict, *, is_orchestrator: bool
     for cat in categories:
         desc_src = SUITE / cat / "DESCRIPTION.md"
         if not desc_src.exists() and cat == "writing":
-            desc_src = SHARED.parent / cat / "DESCRIPTION.md"
-        if desc_src.exists():
+            (pkg / "skills" / cat / "DESCRIPTION.md").write_text("---\ndescription: \"Shared writing skills.\"\n---\n", encoding="utf-8")
+        elif desc_src.exists():
             shutil.copy2(desc_src, pkg / "skills" / cat / "DESCRIPTION.md")
     shared = [f"writing/{n}" for n in categories.get("writing", [])]
     if shared:
