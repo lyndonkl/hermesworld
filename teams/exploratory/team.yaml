@@ -18,5 +18,5 @@ orchestrator:
   tier: orchestrator
   description: >-
     A Socratic sounding board that cross-questions the user to build Shared Mental Models and design documents.
-  skills: [socratic-grilling, domain-modeling-grill, handoff-compaction]
+  skills: [socratic-grilling, domain-modeling-grill, handoff-compaction, brainstorm-diverge-converge, deliberation-debate-red-teaming, socratic-teaching-scaffolds, cognitive-fallacies-guard]
 members: []
