@@ -53,7 +53,25 @@ Instead of a durable queue, you can spawn an agent directly in the Hermes Deskto
 
 ---
 
-## 2. Team 1: Engineering (The Builders)
+## 2. Phase 0: Ideation (The Exploratory Team)
+*Before writing tickets or code, you need a Shared Mental Model. The Exploratory Team acts as your Socratic sounding board.*
+
+### Roster
+- **`exploratory-strategist` (Orchestrator):** Cross-questions the user, maintains domain models, and compacts handoff epics.
+
+### Scenario: Greenfield Project Brainstorming (UI Messaging)
+**Goal:** You want to build a real-time recommendation engine but don't know the exact architecture.
+1. Open Hermes Desktop and click `exploratory-strategist` in the Bot roster.
+2. Type: *"I want to build a real-time recommendation engine. Grill me on the architecture."*
+3. The strategist activates its `socratic-grilling` scaffold. Instead of writing code, it states your implicit assumptions and asks exactly *one* targeted question (e.g., *"Are you prioritizing latency or recommendation accuracy?"*).
+4. As you answer, the strategist uses its `domain-modeling-grill` to silently draft Architecture Decision Records (ADRs) to your workspace.
+5. Once you reach a Shared Mental Model, type: *"Handoff the context."*
+6. The strategist uses `handoff-compaction` to generate a structured `epic.md` file containing all decisions made and known unknowns.
+7. You are now ready to pass `epic.md` to the Engineering Kanban board!
+
+---
+
+## 3. Team 1: Engineering (The Builders)
 *The Engineering Team builds, tests, and reviews software architectures.*
 
 ### Roster
