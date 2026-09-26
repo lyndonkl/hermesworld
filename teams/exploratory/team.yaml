@@ -1,0 +1,22 @@
+team: exploratory
+version: 1.0.0
+provider: openrouter
+models:
+  orchestrator: qwen/qwen3.6-plus
+  strong: qwen/qwen3.6-plus
+  fast: qwen/qwen3.6-plus
+  writer: qwen/qwen3.6-plus
+effort:
+  orchestrator: high
+  strong: high
+  fast: medium
+  writer: high
+auxiliary_model: z-ai/glm-5.3-flash
+orchestrator:
+  name: exploratory-strategist
+  title: Exploratory strategist
+  tier: orchestrator
+  description: >-
+    A Socratic sounding board that cross-questions the user to build Shared Mental Models and design documents.
+  skills: [socratic-grilling, domain-modeling-grill, handoff-compaction, brainstorm-diverge-converge, deliberation-debate-red-teaming, socratic-teaching-scaffolds, cognitive-fallacies-guard]
+members: []

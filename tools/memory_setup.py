@@ -296,6 +296,9 @@ def apply_tuning(cfg: dict) -> int:
                 if block.get(k) != v:
                     block[k] = v
                     n += 1
+        if p["name"] == "exploratory-strategist":
+            block["dialecticCadence"] = 1
+            block["dialecticReasoningLevel"] = "medium"
     return n
 
 
