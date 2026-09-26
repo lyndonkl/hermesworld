@@ -1,0 +1,41 @@
+team: engineering
+version: 1.0.0
+provider: openrouter
+models:
+  orchestrator: qwen/qwen3.6-plus
+  strong: qwen/qwen3.6-plus
+  fast: qwen/qwen3.6-plus
+  writer: qwen/qwen3.6-plus
+effort:
+  orchestrator: high
+  strong: high
+  fast: medium
+  writer: high
+auxiliary_model: z-ai/glm-5.3-flash
+orchestrator:
+  name: engineering-planner
+  title: Engineering planner
+  tier: orchestrator
+  description: >-
+    Breaks down complex engineering tasks, orchestrates specialist developers, manages workspaces,
+    and reviews the final completion state.
+  skills: [engineering-playbooks, readability-check]
+members:
+  - name: software-engineer
+    title: Software engineer
+    tier: strong
+    description: >-
+      Writes the code, runs terminal commands, and builds features in isolated workspaces.
+    skills: [engineering-playbooks]
+  - name: ml-engineer
+    title: Machine learning engineer
+    tier: strong
+    description: >-
+      Handles model architectures, PyTorch pipelines, and heavy numerical workloads.
+    skills: [engineering-playbooks]
+  - name: code-reviewer
+    title: Code reviewer
+    tier: writer
+    description: >-
+      Reviews architecture decisions, code quality, and writes the final design documentation.
+    skills: [engineering-playbooks, readability-check]

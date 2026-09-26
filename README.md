@@ -45,6 +45,7 @@ git clone https://github.com/lyndonkl/hermesworld.git
 cd hermesworld
 tools/install.sh superforecaster       # one standalone agent
 tools/install.sh --team valuation      # the fifteen-agent valuation team
+tools/install.sh --team engineering    # the four-agent engineering team
 tools/install.sh --all                 # everything
 ```
 
