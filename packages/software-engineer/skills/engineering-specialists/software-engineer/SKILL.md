@@ -1,6 +1,6 @@
 ---
 name: software-engineer
-description: "Writes the code, runs terminal commands, and builds features in isolated workspaces."
+description: "Execute concrete coding tasks in isolated workspaces."
 version: 1.0.0
 author: Kushal D'Souza (lyndonkl)
 license: MIT

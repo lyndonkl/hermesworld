@@ -23,7 +23,7 @@ metadata (title and role) so teammates see it in their roster.
 
 | Skill | Category |
 |---|---|
-| `engineering-playbooks` | engineering-playbooks |
+| `engineering-playbooks` | engineering-standards |
 | `software-engineer` | engineering-specialists |
 
 ## Generated file

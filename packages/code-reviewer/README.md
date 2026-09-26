@@ -24,7 +24,7 @@ metadata (title and role) so teammates see it in their roster.
 | Skill | Category |
 |---|---|
 | `code-reviewer` | engineering-specialists |
-| `engineering-playbooks` | engineering-playbooks |
+| `engineering-playbooks` | engineering-standards |
 | `readability-check` | writing |
 
 ## Generated file

@@ -1,6 +1,6 @@
 ---
 name: ml-engineer
-description: "Handles model architectures, PyTorch pipelines, and heavy numerical workloads."
+description: "Execute heavy numerical workloads and PyTorch pipelines."
 version: 1.0.0
 author: Kushal D'Souza (lyndonkl)
 license: MIT

@@ -1,6 +1,6 @@
 ---
 name: code-reviewer
-description: "Reviews architecture decisions, code quality, and writes the final design documentation."
+description: "Audit architecture, review code, and write documentation."
 version: 1.0.0
 author: Kushal D'Souza (lyndonkl)
 license: MIT
