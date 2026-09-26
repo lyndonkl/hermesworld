@@ -6,7 +6,7 @@
 
 model:
   provider: openrouter
-  default: google/gemini-3.7-flash
+  default: z-ai/glm-5.3-flash
 
 agent:
   reasoning_effort: "high"

@@ -23,8 +23,8 @@ provider: openrouter
 models:
   orchestrator: z-ai/glm-5.3-flash
   strong: z-ai/glm-5.3-flash
-  fast: google/gemini-3.7-flash
-  writer: google/gemini-3.7-flash
+  fast: z-ai/glm-5.3-flash
+  writer: z-ai/glm-5.3-flash
 effort:
   orchestrator: high
   strong: high

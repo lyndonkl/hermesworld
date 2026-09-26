@@ -6,7 +6,7 @@
 
 model:
   provider: openrouter
-  default: qwen/qwen3.6-plus
+  default: z-ai/glm-5.3-flash
 
 agent:
   reasoning_effort: "high"

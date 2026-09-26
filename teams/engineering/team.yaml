@@ -4,8 +4,8 @@ provider: openrouter
 models:
   orchestrator: qwen/qwen3.6-plus
   strong: qwen/qwen3.6-plus
-  fast: qwen/qwen3.6-plus
-  writer: qwen/qwen3.6-plus
+  fast: z-ai/glm-5.3-flash
+  writer: z-ai/glm-5.3-flash
 effort:
   orchestrator: high
   strong: high

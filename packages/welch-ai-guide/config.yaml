@@ -4,7 +4,7 @@
 
 model:
   provider: openrouter
-  default: google/gemini-3.8-flash
+  default: qwen/qwen3.6-plus
 
 agent:
   reasoning_effort: "high"
@@ -57,7 +57,7 @@ auxiliary:
     model: z-ai/glm-5.3-flash
   vision:
     provider: openrouter
-    model: google/gemini-3.8-flash
+    model: qwen/qwen3.6-plus
 
 memory:
   provider: honcho

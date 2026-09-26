@@ -69,8 +69,7 @@ on long-horizon work, at one eighteenth of the input price.
 The shipped default moved from Muse Spark to GLM-5.3-Flash on 2026-09-12 (rows for the
 newer models were added that day). Three full valuation runs on Muse Spark put it at 46%
 of all tokens and most of the bill; on the measured token mix the same work costs about
-one fifteenth on GLM-5.3-Flash. Muse Spark is kept as the `spark` preset for anyone who
-wants the extra depth on the orchestrator and the judgment specialists.
+one fifteenth on GLM-5.3-Flash. We've since replaced the legacy `spark` preset with a `qwen` preset (`qwen/qwen3.6-plus`), offering strong reasoning at a fraction of the cost of Muse Spark ($0.325 input / $1.95 output compared to $1.25 / $4.25).
 
 ## A writing model, for reports
 
@@ -94,7 +93,7 @@ OpenRouter:
 For reference, the Anthropic rows: claude-fable-5 1504, claude-opus-4-6-high 1500,
 claude-fable-5.1-max 1487, claude-opus-5-high 1475.
 
-**Writer tier = `google/gemini-3.7-flash` at `high`.** It ties for the best non-Anthropic
+**Writer tier = `z-ai/glm-5.3-flash` at `high`.** It ties for the best non-Anthropic
 writing score, it also holds the best AA-AnalystAgent result (60% pass^5 on spreadsheet and
 document work, which is what a strategy or valuation report is built from), and it costs
 a fifth of the alternatives. `openai/gpt-5.6-sol` at `xhigh` is the frontier alternative
@@ -114,12 +113,12 @@ Where the writer tier is used:
 `tools/team_models.py` applies these to the installed team; the same ids work
 for `hermes -p <name> model` on the standalone agents.
 
-| Tier | frontier | balanced (shipped default) | spark | budget |
+| Tier | frontier | balanced (shipped default) | qwen | budget |
 |---|---|---|---|---|
-| `orchestrator` | `anthropic/claude-fable-5.1` at `xhigh` | `z-ai/glm-5.3-flash` at `high` | `meta/muse-spark-1.3` at `high` | `z-ai/glm-5.3-flash` at `high` |
-| `strong` | `anthropic/claude-opus-5` at `xhigh` | `z-ai/glm-5.3-flash` at `high` | `meta/muse-spark-1.3` at `high` | `z-ai/glm-5.3-flash` at `high` |
-| `fast` | `anthropic/claude-sonnet-5` at `high` | `google/gemini-3.7-flash` at `medium` | `google/gemini-3.7-flash` at `medium` | `z-ai/glm-5.3-flash` at `medium` |
-| `writer` | `openai/gpt-5.6-sol` at `xhigh` | `google/gemini-3.7-flash` at `high` | `google/gemini-3.7-flash` at `high` | `google/gemini-3.7-flash` at `high` |
+| `orchestrator` | `anthropic/claude-fable-5.1` at `xhigh` | `z-ai/glm-5.3-flash` at `high` | `qwen/qwen3.6-plus` at `high` | `z-ai/glm-5.3-flash` at `high` |
+| `strong` | `anthropic/claude-opus-5` at `xhigh` | `z-ai/glm-5.3-flash` at `high` | `qwen/qwen3.6-plus` at `high` | `z-ai/glm-5.3-flash` at `high` |
+| `fast` | `anthropic/claude-sonnet-5` at `high` | `z-ai/glm-5.3-flash` at `medium` | `z-ai/glm-5.3-flash` at `medium` | `z-ai/glm-5.3-flash` at `medium` |
+| `writer` | `openai/gpt-5.6-sol` at `xhigh` | `z-ai/glm-5.3-flash` at `high` | `z-ai/glm-5.3-flash` at `high` | `z-ai/glm-5.3-flash` at `high` |
 | auxiliary | `z-ai/glm-5.3-flash` | `z-ai/glm-5.3-flash` | `z-ai/glm-5.3-flash` | `z-ai/glm-5.3-flash` |
 
 `balanced` keeps Gemini 3.7 Flash on the procedure tier because it leads AA-AnalystAgent,
@@ -137,7 +136,7 @@ mind is made on the installed profile, not by re-installing.
 python3 tools/team_models.py valuation --preset balanced          # after tools/install.sh --team valuation
 python3 tools/team_models.py valuation --preset frontier --provider openrouter
 python3 tools/team_models.py valuation --orchestrator anthropic/claude-fable-5.1 \
-        --strong meta/muse-spark-1.3 --fast z-ai/glm-5.3-flash    # or mix by hand
+        --strong qwen/qwen3.6-plus --fast z-ai/glm-5.3-flash    # or mix by hand
 python3 tools/team_models.py valuation --show
 ```
 
@@ -146,7 +145,7 @@ Per-profile picks for the standalone agents, same reasoning:
 | Profile | Start with | Why |
 |---|---|---|
 | `superforecaster` | `z-ai/glm-5.3-flash` | Reasoning plus many web searches; frontier `anthropic/claude-fable-5.1` |
-| `product-strategist` | `z-ai/glm-5.3-flash` for research, `delegation.model: google/gemini-3.7-flash` for the report | Reasoning and news curation first; the writing model drafts the report as a delegated child |
+| `product-strategist` | `z-ai/glm-5.3-flash` for research, `delegation.model: qwen/qwen3.6-plus` for the report | Reasoning and news curation first; the writing model drafts the report as a delegated child |
 | `cognitive-design-architect` | `z-ai/glm-5.3-flash` | Design reasoning and D3 code; frontier `openai/gpt-6-astra` for the coding end |
 | `geometric-deep-learning-architect` | `openai/gpt-6-astra` at `high`, or `z-ai/glm-5.3-flash` to start | Maths plus PyTorch; GPT-6 Astra leads Terminal-Bench v4 |
 
