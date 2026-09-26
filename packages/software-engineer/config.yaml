@@ -6,7 +6,7 @@
 
 model:
   provider: openrouter
-  default: openai/gpt-6-astra
+  default: qwen/qwen3.6-plus
 
 agent:
   reasoning_effort: "high"

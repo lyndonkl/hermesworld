@@ -6,7 +6,7 @@
 
 model:
   provider: openrouter
-  default: google/gemini-3.7-flash
+  default: qwen/qwen3.6-plus
 
 agent:
   reasoning_effort: "high"

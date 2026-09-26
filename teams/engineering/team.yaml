@@ -2,10 +2,10 @@ team: engineering
 version: 1.0.0
 provider: openrouter
 models:
-  orchestrator: openai/gpt-6-astra
-  strong: openai/gpt-6-astra
-  fast: google/gemini-3.7-flash
-  writer: google/gemini-3.7-flash
+  orchestrator: qwen/qwen3.6-plus
+  strong: qwen/qwen3.6-plus
+  fast: qwen/qwen3.6-plus
+  writer: qwen/qwen3.6-plus
 effort:
   orchestrator: high
   strong: high
