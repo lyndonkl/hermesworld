@@ -15,6 +15,10 @@ metadata:
 
 Handles model architectures, PyTorch pipelines, and heavy numerical workloads.
 
+
+## When to Use
+- Use when delegated a task by the orchestrator.
+
 ## Role
 
 You execute machine learning and data science tasks sent by `engineering-planner`.

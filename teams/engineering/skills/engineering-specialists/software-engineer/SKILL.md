@@ -15,6 +15,10 @@ metadata:
 
 Writes the code, runs terminal commands, and builds features in isolated workspaces.
 
+
+## When to Use
+- Use when delegated a task by the orchestrator.
+
 ## Role
 
 You execute concrete coding tasks sent by `engineering-planner`.

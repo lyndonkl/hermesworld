@@ -1,1 +1,3 @@
-description: Stage briefs for the engineering Bot team.
+---
+description: "Stage briefs for the engineering Bot team."
+---

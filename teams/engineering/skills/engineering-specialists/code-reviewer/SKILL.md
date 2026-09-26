@@ -15,6 +15,10 @@ metadata:
 
 Reviews architecture decisions, code quality, and writes the final design documentation.
 
+
+## When to Use
+- Use when delegated a task by the orchestrator.
+
 ## Role
 
 You audit the work produced by the engineering team.
