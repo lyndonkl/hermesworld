@@ -6,9 +6,9 @@ on sonnet. Every package here ships a model per tier in its config.yaml (see
 docs/MODELS.md); this helper switches the installed profiles to another preset,
 or to models you name, after `tools/install.sh --team`:
 
-    python3 tools/team_models.py valuation --preset balanced      # frontier | balanced | spark | budget
+    python3 tools/team_models.py valuation --preset balanced      # frontier | balanced | qwen | budget
     python3 tools/team_models.py valuation --orchestrator <model> --strong <model> --fast <model>
-    python3 tools/team_models.py valuation --preset budget --strong meta/muse-spark-1.3   # preset + override
+    python3 tools/team_models.py valuation --preset budget --strong qwen/qwen3.6-plus   # preset + override
     python3 tools/team_models.py valuation --show
 
 It edits `model.default` (and `model.provider` when --provider is given) in
@@ -34,7 +34,7 @@ PRESETS = {
                  "fast": "anthropic/claude-sonnet-5", "writer": "openai/gpt-5.6-sol"},
     "balanced": {"orchestrator": "z-ai/glm-5.3-flash", "strong": "z-ai/glm-5.3-flash",
                  "fast": "google/gemini-3.7-flash", "writer": "google/gemini-3.7-flash"},
-    "spark":    {"orchestrator": "meta/muse-spark-1.3", "strong": "meta/muse-spark-1.3",
+    "qwen":    {"orchestrator": "qwen/qwen3.6-plus", "strong": "qwen/qwen3.6-plus",
                  "fast": "google/gemini-3.7-flash", "writer": "google/gemini-3.7-flash"},
     "budget":   {"orchestrator": "z-ai/glm-5.3-flash", "strong": "z-ai/glm-5.3-flash", "fast": "z-ai/glm-5.3-flash",
                  "writer": "google/gemini-3.7-flash"},
