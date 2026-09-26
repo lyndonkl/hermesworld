@@ -4,6 +4,7 @@
 #   tools/install.sh superforecaster              # one package
 #   tools/install.sh --all                        # every package (standalone agents + teams)
 #   tools/install.sh --team valuation             # a Bot team: its orchestrator + every member
+#   tools/install.sh --team engineering           # the engineering team
 #   tools/install.sh superforecaster --no-alias   # skip the shell wrapper
 #
 # Uses `hermes profile install <local dir>`, the documented way to install a

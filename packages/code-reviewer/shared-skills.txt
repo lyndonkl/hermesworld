@@ -1,0 +1,2 @@
+# <category>/<skill> — copied from shared/skills/<skill> by tools/sync_shared.py
+writing/readability-check
