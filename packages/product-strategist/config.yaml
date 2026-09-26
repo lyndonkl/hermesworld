@@ -22,7 +22,7 @@ context_file_max_chars: 60000
 # delegate_task child on the writing model below (SOUL.md, Step 8).
 delegation:
   provider: openrouter
-  model: google/gemini-3.7-flash
+  model: z-ai/glm-5.3-flash
   max_iterations: 120
   max_concurrent_children: 4
   reasoning_effort: "high"       # the writer child; otherwise it silently inherits the parent's level

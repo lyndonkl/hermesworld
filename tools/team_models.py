@@ -33,11 +33,11 @@ PRESETS = {
     "frontier": {"orchestrator": "anthropic/claude-fable-5.1", "strong": "anthropic/claude-opus-5",
                  "fast": "anthropic/claude-sonnet-5", "writer": "openai/gpt-5.6-sol"},
     "balanced": {"orchestrator": "z-ai/glm-5.3-flash", "strong": "z-ai/glm-5.3-flash",
-                 "fast": "google/gemini-3.7-flash", "writer": "google/gemini-3.7-flash"},
+                 "fast": "z-ai/glm-5.3-flash", "writer": "z-ai/glm-5.3-flash"},
     "qwen":    {"orchestrator": "qwen/qwen3.6-plus", "strong": "qwen/qwen3.6-plus",
-                 "fast": "google/gemini-3.7-flash", "writer": "google/gemini-3.7-flash"},
+                 "fast": "z-ai/glm-5.3-flash", "writer": "z-ai/glm-5.3-flash"},
     "budget":   {"orchestrator": "z-ai/glm-5.3-flash", "strong": "z-ai/glm-5.3-flash", "fast": "z-ai/glm-5.3-flash",
-                 "writer": "google/gemini-3.7-flash"},
+                 "writer": "z-ai/glm-5.3-flash"},
 }
 
 

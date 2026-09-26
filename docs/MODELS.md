@@ -93,7 +93,7 @@ OpenRouter:
 For reference, the Anthropic rows: claude-fable-5 1504, claude-opus-4-6-high 1500,
 claude-fable-5.1-max 1487, claude-opus-5-high 1475.
 
-**Writer tier = `google/gemini-3.7-flash` at `high`.** It ties for the best non-Anthropic
+**Writer tier = `z-ai/glm-5.3-flash` at `high`.** It ties for the best non-Anthropic
 writing score, it also holds the best AA-AnalystAgent result (60% pass^5 on spreadsheet and
 document work, which is what a strategy or valuation report is built from), and it costs
 a fifth of the alternatives. `openai/gpt-5.6-sol` at `xhigh` is the frontier alternative
@@ -117,8 +117,8 @@ for `hermes -p <name> model` on the standalone agents.
 |---|---|---|---|---|
 | `orchestrator` | `anthropic/claude-fable-5.1` at `xhigh` | `z-ai/glm-5.3-flash` at `high` | `qwen/qwen3.6-plus` at `high` | `z-ai/glm-5.3-flash` at `high` |
 | `strong` | `anthropic/claude-opus-5` at `xhigh` | `z-ai/glm-5.3-flash` at `high` | `qwen/qwen3.6-plus` at `high` | `z-ai/glm-5.3-flash` at `high` |
-| `fast` | `anthropic/claude-sonnet-5` at `high` | `google/gemini-3.7-flash` at `medium` | `google/gemini-3.7-flash` at `medium` | `z-ai/glm-5.3-flash` at `medium` |
-| `writer` | `openai/gpt-5.6-sol` at `xhigh` | `google/gemini-3.7-flash` at `high` | `google/gemini-3.7-flash` at `high` | `google/gemini-3.7-flash` at `high` |
+| `fast` | `anthropic/claude-sonnet-5` at `high` | `z-ai/glm-5.3-flash` at `medium` | `z-ai/glm-5.3-flash` at `medium` | `z-ai/glm-5.3-flash` at `medium` |
+| `writer` | `openai/gpt-5.6-sol` at `xhigh` | `z-ai/glm-5.3-flash` at `high` | `z-ai/glm-5.3-flash` at `high` | `z-ai/glm-5.3-flash` at `high` |
 | auxiliary | `z-ai/glm-5.3-flash` | `z-ai/glm-5.3-flash` | `z-ai/glm-5.3-flash` | `z-ai/glm-5.3-flash` |
 
 `balanced` keeps Gemini 3.7 Flash on the procedure tier because it leads AA-AnalystAgent,
@@ -145,7 +145,7 @@ Per-profile picks for the standalone agents, same reasoning:
 | Profile | Start with | Why |
 |---|---|---|
 | `superforecaster` | `z-ai/glm-5.3-flash` | Reasoning plus many web searches; frontier `anthropic/claude-fable-5.1` |
-| `product-strategist` | `z-ai/glm-5.3-flash` for research, `delegation.model: google/gemini-3.7-flash` for the report | Reasoning and news curation first; the writing model drafts the report as a delegated child |
+| `product-strategist` | `z-ai/glm-5.3-flash` for research, `delegation.model: qwen/qwen3.6-plus` for the report | Reasoning and news curation first; the writing model drafts the report as a delegated child |
 | `cognitive-design-architect` | `z-ai/glm-5.3-flash` | Design reasoning and D3 code; frontier `openai/gpt-6-astra` for the coding end |
 | `geometric-deep-learning-architect` | `openai/gpt-6-astra` at `high`, or `z-ai/glm-5.3-flash` to start | Maths plus PyTorch; GPT-6 Astra leads Terminal-Bench v4 |
 
