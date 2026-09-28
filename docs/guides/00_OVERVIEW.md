@@ -21,3 +21,4 @@ Welcome to the Hermesworld agent network. This ecosystem relies on **autonomous 
 - [Phase 1: Building (Engineering Team)](02_ENGINEERING_TEAM.md)
 - [Phase 2: Finance & Valuations (Valuation Team)](03_VALUATION_TEAM.md)
 - [Specialists & Standalones](04_SPECIALISTS.md)
+- [How to Use Hermes: Interfaces and Modes](05_USAGE_MODES.md)
