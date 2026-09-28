@@ -7,3 +7,4 @@ The usage guide has been expanded into detailed, scenario-driven documentation. 
 3. [Phase 1: Building (The Engineering Team)](guides/02_ENGINEERING_TEAM.md)
 4. [Phase 2: Finance & Valuations (The Valuation Team)](guides/03_VALUATION_TEAM.md)
 5. [Specialists & Standalone Profiles](guides/04_SPECIALISTS.md)
+6. [How to Use Hermes: Interfaces and Modes](guides/05_USAGE_MODES.md)
