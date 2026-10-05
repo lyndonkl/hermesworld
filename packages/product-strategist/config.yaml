@@ -1,72 +1,90 @@
-# Model and behavioural defaults for the product-strategist profile.
-# Picks follow docs/MODELS.md (Artificial Analysis + OpenRouter, 2026-09-09).
-# Two models: a reasoning model for research and curation, a writing model for the report.
-# Change the model any time with `hermes -p product-strategist model`; this file is preserved across
-# `hermes profile update`.
-
+# OpenAI subscription routes; see docs/MODELS.md.
 model:
-  provider: openrouter
-  default: z-ai/glm-5.3-flash
-
+  provider: openai-codex
+  default: gpt-5.6-sol
 agent:
-  reasoning_effort: "high"
-
+  reasoning_effort: high
 skills:
-  creation_nudge_interval: 0     # curated agent; do not nudge it to write new skills
-
-# SOUL.md is a context file. Hermes cuts context files above 20,000 characters when it cannot
-# tell the model's window; ours run to 30,000, so pin a cap that fits.
+  creation_nudge_interval: 0
 context_file_max_chars: 60000
-
-# Research and reasoning run on the model above. The report itself is written by a
-# delegate_task child on the writing model below (SOUL.md, Step 8).
 delegation:
-  provider: openrouter
-  model: z-ai/glm-5.3-flash
+  provider: openai-codex
+  model: gpt-5.6-sol
   max_iterations: 120
   max_concurrent_children: 4
-  reasoning_effort: "high"       # the writer child; otherwise it silently inherits the parent's level
-
-# Housekeeping calls on a cheap model; nothing here needs reasoning. Any role left unset runs
-# on the main model at its price. vision stays unset (the cheap model has no vision); review
-# stays on the main model on purpose.
+  reasoning_effort: high
+  fallback_providers: []
 auxiliary:
   compression:
-    provider: openrouter
-    model: z-ai/glm-5.3-flash
+    provider: openai-codex
+    model: gpt-5.6-terra
+    reasoning_effort: low
   title_generation:
-    provider: openrouter
-    model: z-ai/glm-5.3-flash
+    provider: openai-codex
+    model: gpt-5.6-luna
+    reasoning_effort: low
   background_review:
-    provider: openrouter
-    model: z-ai/glm-5.3-flash
+    provider: openai-codex
+    model: gpt-5.6-sol
+    reasoning_effort: high
   approval:
-    provider: openrouter
-    model: z-ai/glm-5.3-flash
+    provider: openai-codex
+    model: gpt-5.6-luna
+    reasoning_effort: low
   skills_hub:
-    provider: openrouter
-    model: z-ai/glm-5.3-flash
+    provider: openai-codex
+    model: gpt-5.6-luna
+    reasoning_effort: low
   mcp:
-    provider: openrouter
-    model: z-ai/glm-5.3-flash
+    provider: openai-codex
+    model: gpt-5.6-luna
+    reasoning_effort: low
   profile_describer:
-    provider: openrouter
-    model: z-ai/glm-5.3-flash
+    provider: openai-codex
+    model: gpt-5.6-luna
+    reasoning_effort: low
   goal_judge:
-    provider: openrouter
-    model: z-ai/glm-5.3-flash
+    provider: openai-codex
+    model: gpt-5.6-terra
+    reasoning_effort: medium
   curator:
-    provider: openrouter
-    model: z-ai/glm-5.3-flash
+    provider: openai-codex
+    model: gpt-5.6-luna
+    reasoning_effort: low
   monitor:
-    provider: openrouter
-    model: z-ai/glm-5.3-flash
+    provider: openai-codex
+    model: gpt-5.6-luna
+    reasoning_effort: low
   triage_specifier:
-    provider: openrouter
-    model: z-ai/glm-5.3-flash
+    provider: openai-codex
+    model: gpt-5.6-luna
+    reasoning_effort: low
   kanban_decomposer:
-    provider: openrouter
-    model: z-ai/glm-5.3-flash
+    provider: openai-codex
+    model: gpt-5.6-terra
+    reasoning_effort: medium
   memory_query_rewrite:
-    provider: openrouter
-    model: z-ai/glm-5.3-flash
+    provider: openai-codex
+    model: gpt-5.6-luna
+    reasoning_effort: low
+  vision:
+    provider: openai-codex
+    model: gpt-5.6-terra
+    reasoning_effort: medium
+  review:
+    provider: openai-codex
+    model: gpt-5.6-sol
+    reasoning_effort: high
+  tts_audio_tags:
+    provider: openai-codex
+    model: gpt-5.6-luna
+    reasoning_effort: low
+  moa_aggregator:
+    provider: openai-codex
+    model: gpt-5.6-sol
+    reasoning_effort: high
+  moa_reference:
+    provider: openai-codex
+    model: gpt-5.6-terra
+    reasoning_effort: medium
+fallback_providers: []

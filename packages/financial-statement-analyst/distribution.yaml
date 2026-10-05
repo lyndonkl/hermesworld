@@ -5,7 +5,5 @@ description: "Repairs reported statements into a valuation base: trailing twelve
 hermes_requires: ">=0.21.0"
 author: "Kushal D'Souza (lyndonkl)"
 license: "MIT"
-env_requires:
-  - name: OPENROUTER_API_KEY
-    description: "API key for the provider every model in config.yaml is routed through"
-    required: true
+# Authenticate with `hermes auth add openai-codex` before chatting.
+env_requires: []

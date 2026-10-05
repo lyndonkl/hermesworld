@@ -37,7 +37,7 @@ Or directly with Hermes:
 hermes profile install ./packages/geometric-deep-learning-architect --alias
 ```
 
-`config.yaml` pins `z-ai/glm-5.3-flash` on OpenRouter at high effort; for hard derivations switch to `openai/gpt-6-astra`, the Terminal-Bench v4 leader, with `hermes -p geometric-deep-learning-architect model` (`docs/MODELS.md`). Running equivariance tests requires Python with PyTorch, plus e3nn, escnn, or pytorch_geometric as the design calls for, in the environment where the agent's `terminal` runs.
+The default is `gpt-6-astra` through `openai-codex` with high reasoning effort. Install with `--models balanced` for OpenRouter, or use `tools/profile_models.py` to switch installed profiles. See `docs/MODELS.md`.
 
 ## First prompts to try
 

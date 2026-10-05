@@ -1,63 +1,90 @@
-# Model and behavioural defaults for the welch-ai-guide profile.
-# Change the model any time with `hermes -p welch-ai-guide model`; this file is preserved across
-# `hermes profile update`.
-
+# OpenAI subscription routes; see docs/MODELS.md.
 model:
-  provider: openrouter
-  default: qwen/qwen3.6-plus
-
+  provider: openai-codex
+  default: gpt-5.6-terra
 agent:
-  reasoning_effort: "high"
-
+  reasoning_effort: low
 skills:
-  creation_nudge_interval: 0     # curated agent; do not nudge it to write new skills
-
+  creation_nudge_interval: 0
 context_file_max_chars: 60000
-
-# Housekeeping calls on a cheap model; nothing here needs reasoning.
 auxiliary:
   compression:
-    provider: openrouter
-    model: z-ai/glm-5.3-flash
+    provider: openai-codex
+    model: gpt-5.6-terra
+    reasoning_effort: low
   title_generation:
-    provider: openrouter
-    model: z-ai/glm-5.3-flash
+    provider: openai-codex
+    model: gpt-5.6-luna
+    reasoning_effort: low
   background_review:
-    provider: openrouter
-    model: z-ai/glm-5.3-flash
+    provider: openai-codex
+    model: gpt-5.6-sol
+    reasoning_effort: high
   approval:
-    provider: openrouter
-    model: z-ai/glm-5.3-flash
+    provider: openai-codex
+    model: gpt-5.6-luna
+    reasoning_effort: low
   skills_hub:
-    provider: openrouter
-    model: z-ai/glm-5.3-flash
+    provider: openai-codex
+    model: gpt-5.6-luna
+    reasoning_effort: low
   mcp:
-    provider: openrouter
-    model: z-ai/glm-5.3-flash
+    provider: openai-codex
+    model: gpt-5.6-luna
+    reasoning_effort: low
   profile_describer:
-    provider: openrouter
-    model: z-ai/glm-5.3-flash
+    provider: openai-codex
+    model: gpt-5.6-luna
+    reasoning_effort: low
   goal_judge:
-    provider: openrouter
-    model: z-ai/glm-5.3-flash
+    provider: openai-codex
+    model: gpt-5.6-terra
+    reasoning_effort: medium
   curator:
-    provider: openrouter
-    model: z-ai/glm-5.3-flash
+    provider: openai-codex
+    model: gpt-5.6-luna
+    reasoning_effort: low
   monitor:
-    provider: openrouter
-    model: z-ai/glm-5.3-flash
+    provider: openai-codex
+    model: gpt-5.6-luna
+    reasoning_effort: low
   triage_specifier:
-    provider: openrouter
-    model: z-ai/glm-5.3-flash
+    provider: openai-codex
+    model: gpt-5.6-luna
+    reasoning_effort: low
   kanban_decomposer:
-    provider: openrouter
-    model: z-ai/glm-5.3-flash
+    provider: openai-codex
+    model: gpt-5.6-terra
+    reasoning_effort: medium
   memory_query_rewrite:
-    provider: openrouter
-    model: z-ai/glm-5.3-flash
+    provider: openai-codex
+    model: gpt-5.6-luna
+    reasoning_effort: low
   vision:
-    provider: openrouter
-    model: qwen/qwen3.6-plus
-
+    provider: openai-codex
+    model: gpt-5.6-terra
+    reasoning_effort: medium
+  review:
+    provider: openai-codex
+    model: gpt-5.6-sol
+    reasoning_effort: high
+  tts_audio_tags:
+    provider: openai-codex
+    model: gpt-5.6-luna
+    reasoning_effort: low
+  moa_aggregator:
+    provider: openai-codex
+    model: gpt-5.6-sol
+    reasoning_effort: high
+  moa_reference:
+    provider: openai-codex
+    model: gpt-5.6-terra
+    reasoning_effort: medium
 memory:
   provider: honcho
+fallback_providers: []
+delegation:
+  provider: openai-codex
+  model: gpt-5.6-terra
+  reasoning_effort: low
+  fallback_providers: []

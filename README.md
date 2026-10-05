@@ -28,11 +28,12 @@ rules are written down in [AGENTS.md](AGENTS.md) and enforced by
 - Hermes Agent 0.21 or newer, installed and already talking to a model. The
   desktop app installs the `hermes` CLI at `~/.local/bin/hermes`; check with
   `hermes --version`. If `hermes chat` does not work yet, finish `hermes setup`
-  first: these packages reuse whatever model and credentials you already have.
+  first. Use a current release for the OpenAI subscription models documented below.
 - `git`, and `python3` with PyYAML (`python3 -m pip install pyyaml`). PyYAML is
   only needed by the repo tooling, not by the agents.
-- An OpenRouter API key already set up in Hermes (the packages pin OpenRouter
-  models; change them with `hermes -p <name> model` if you use another provider).
+- Authenticate your chosen inference provider: ChatGPT/Codex OAuth for the
+  default `codex-pro` preset, or an OpenRouter API key for `balanced`, `qwen`,
+  `budget`, and `frontier`. See the setup paths below.
 - For the optional memory stack only: Docker Desktop (the script starts it) and
   [`uv`](https://docs.astral.sh/uv/) (the script uses it to install the Honcho CLI).
   Honcho's own model calls go to OpenRouter with the same key; nothing runs on
@@ -49,15 +50,44 @@ tools/install.sh --team engineering    # the four-agent engineering team
 tools/install.sh --all                 # everything
 ```
 
-`tools/install.sh` runs `hermes profile install ./packages/<name> --alias --yes`
-for each package. Every package ships a `config.yaml` that pins an OpenRouter
-model chosen for its workload (the "balanced" preset in
-[docs/MODELS.md](docs/MODELS.md)). Hermes profiles are credential-isolated, so
-the installer also copies the pinned provider's API key from your root
-`~/.hermes/.env` into each new profile's own `.env`, locally and with mode 600.
-No key is ever part of this repository. Some OpenRouter models, Meta's Muse
-Spark among them (offered here as the `spark` preset), need a one-time 18+
-confirmation in your OpenRouter account settings before they answer.
+Choose a provider before installing:
+
+```bash
+# OpenAI models through your ChatGPT/Codex subscription
+hermes auth add openai-codex
+tools/install.sh --all --models codex-pro
+
+# OpenRouter models with an API key configured through Hermes
+hermes model                           # choose OpenRouter and enter your key
+tools/install.sh --all --models balanced
+```
+
+`--models` also works with a single package or `--team`. The default is
+`codex-pro`: Sol at high effort for coordination and analysis, Astra at high
+for the hardest judgments, Terra at low/medium for procedures, and Luna at low
+for routine auxiliary work. Review and compression have their own stronger routes.
+The full allocation and subscription limits are in [docs/MODELS.md](docs/MODELS.md).
+
+The installer sets primary, auxiliary, delegated model routes and reasoning for
+the selected preset, then configures Bot metadata and restores existing Honcho
+wiring. OpenRouter credentials are copied locally from the root Hermes .env
+into a named profile only when missing, with mode 600. OAuth credentials are
+managed by Hermes; no keys or tokens ship in this repository.
+
+For existing installations, preview and apply a provider switch without reinstalling:
+
+```bash
+python3 tools/profile_models.py --all --preset codex-pro
+python3 tools/profile_models.py --all --preset codex-pro --apply
+python3 tools/profile_models.py --team valuation --preset balanced --apply
+```
+
+The migration creates per-profile backups and preserves memory settings and
+unrelated configuration. Restart active sessions after switching. Both policies
+keep Honcho's independent OpenRouter reasoning and embedding calls enabled;
+keep its OpenRouter key even when bot inference uses your ChatGPT subscription.
+Plain `hermes profile update` preserves installed config.yaml, so a repository
+update alone does not switch your installed model routes.
 
 Verify:
 

@@ -37,7 +37,7 @@ or directly:
 hermes profile install ./packages/cognitive-design-architect --alias
 ```
 
-Then start a session with `hermes -p cognitive-design-architect chat` (or `cognitive-design-architect chat` if the alias was created). The package pins `z-ai/glm-5.3-flash` on OpenRouter at high reasoning effort (`docs/MODELS.md`); `hermes -p cognitive-design-architect model` changes it.
+The default is `gpt-5.6-sol` through `openai-codex` with high reasoning effort. Install with `--models balanced` for OpenRouter, or use `tools/profile_models.py` to switch installed profiles. See `docs/MODELS.md`.
 
 Updating later: `git pull` in this checkout, then `hermes profile update cognitive-design-architect`. `SOUL.md` and the skills are replaced on update; your `config.yaml` is kept.
 
@@ -73,4 +73,4 @@ The two `writing` skills are copied from `shared/skills/` and are shared with ot
 - Skill descriptions were cut to the 60-character Hermes index limit, with the original trigger phrases moved into a `## When to Use` section in each skill.
 - Every skill gained a `## Verification` section that names the check proving the work is done (the tree-test threshold, the audit rubric, the browser checks for D3 output).
 - The agent now finishes written deliverables with `slop-detector` and `readability-check`, which the Claude agent listed but never scheduled.
-- The model is pinned in `config.yaml`: `z-ai/glm-5.3-flash` on OpenRouter at high effort; switch to `openai/gpt-6-astra` for the coding end (`docs/MODELS.md`).
+- **Model routing.** The default is `gpt-5.6-sol` through `openai-codex` with high reasoning effort. Install with `--models balanced` for OpenRouter, or use `tools/profile_models.py` to switch installed profiles. See `docs/MODELS.md`.

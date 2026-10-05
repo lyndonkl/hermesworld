@@ -15,24 +15,26 @@
 team: valuation
 version: 1.3.0
 
-# Models per tier, pinned into each generated config.yaml (the "balanced" preset in
-# docs/MODELS.md; Artificial Analysis + OpenRouter data of 2026-09-12). Change with
+# Models per tier, pinned into each generated config.yaml (the OpenAI subscription policy in
+# docs/MODELS.md; role-specific choices reviewed 2026-10-04). Change with
 # `python3 tools/team_models.py valuation --preset ...` after install, or edit here and
 # rebuild. `writer` is the report-writing tier: strong at prose, never Opus.
-provider: openrouter
+provider: openai-codex
 models:
-  orchestrator: z-ai/glm-5.3-flash
-  strong: z-ai/glm-5.3-flash
-  fast: z-ai/glm-5.3-flash
-  writer: z-ai/glm-5.3-flash
+  orchestrator: gpt-5.6-sol
+  strong: gpt-5.6-sol
+  fast: gpt-5.6-terra
+  writer: gpt-5.6-sol
 effort:
   orchestrator: high
   strong: high
   fast: medium
   writer: high
-auxiliary_model: z-ai/glm-5.3-flash   # compression, titles, background review
+auxiliary_model: gpt-5.6-luna   # per-task routes in tools/profile_models.py
 orchestrator:
   name: valuation-orchestrator
+  model: gpt-5.6-sol
+  reasoning_effort: high
   title: Valuation orchestrator
   tier: orchestrator
   description: >-
@@ -42,6 +44,8 @@ orchestrator:
 
 members:
   - name: financial-data-collector
+    model: gpt-5.6-terra
+    reasoning_effort: low
     title: Financial data collector
     tier: fast
     description: >-
@@ -50,6 +54,8 @@ members:
     skills: [financial-data-sourcing, cost-of-capital-toolkit, company-classification-routing]
 
   - name: company-diagnostician
+    model: gpt-5.6-sol
+    reasoning_effort: high
     title: Company diagnostician
     tier: strong
     description: >-
@@ -60,6 +66,8 @@ members:
              corporate-governance-analysis, valuation-playbooks]
 
   - name: business-narrative-analyst
+    model: gpt-5.6-sol
+    reasoning_effort: high
     title: Business narrative analyst
     tier: strong
     description: >-
@@ -69,6 +77,8 @@ members:
              option-valuation-toolkit, cost-of-capital-toolkit, valuation-playbooks]
 
   - name: financial-statement-analyst
+    model: gpt-5.6-terra
+    reasoning_effort: medium
     title: Financial statement analyst
     tier: fast
     description: >-
@@ -77,6 +87,8 @@ members:
     skills: [financial-statement-normalization, cost-of-capital-toolkit, dcf-valuation-engine, valuation-playbooks]
 
   - name: cost-of-capital-analyst
+    model: gpt-5.6-terra
+    reasoning_effort: medium
     title: Cost of capital analyst
     tier: fast
     description: >-
@@ -85,6 +97,8 @@ members:
     skills: [cost-of-capital-toolkit, valuation-consistency-checks, valuation-playbooks]
 
   - name: intrinsic-valuation-analyst
+    model: gpt-6-astra
+    reasoning_effort: high
     title: Intrinsic valuation analyst
     tier: strong
     description: >-
@@ -93,6 +107,8 @@ members:
              payout-policy-analysis, valuation-playbooks]
 
   - name: relative-valuation-analyst
+    model: gpt-5.6-terra
+    reasoning_effort: medium
     title: Relative valuation analyst
     tier: fast
     description: >-
@@ -102,6 +118,8 @@ members:
              valuation-consistency-checks]
 
   - name: special-situations-analyst
+    model: gpt-6-astra
+    reasoning_effort: high
     title: Special situations analyst
     tier: strong
     description: >-
@@ -112,6 +130,8 @@ members:
              valuation-playbooks]
 
   - name: capital-structure-analyst
+    model: gpt-5.6-sol
+    reasoning_effort: high
     title: Capital structure analyst
     tier: strong
     description: >-
@@ -121,6 +141,8 @@ members:
              valuation-playbooks]
 
   - name: payout-policy-analyst
+    model: gpt-5.6-terra
+    reasoning_effort: medium
     title: Payout policy analyst
     tier: fast
     description: >-
@@ -129,6 +151,8 @@ members:
     skills: [payout-policy-analysis, valuation-playbooks]
 
   - name: investment-analyst
+    model: gpt-5.6-sol
+    reasoning_effort: high
     title: Investment analyst
     tier: strong
     description: >-
@@ -138,6 +162,8 @@ members:
              monte-carlo-valuation, valuation-playbooks]
 
   - name: real-options-analyst
+    model: gpt-6-astra
+    reasoning_effort: high
     title: Real options analyst
     tier: strong
     description: >-
@@ -146,6 +172,8 @@ members:
     skills: [option-valuation-toolkit, monte-carlo-valuation, valuation-playbooks]
 
   - name: valuation-critic
+    model: gpt-6-astra
+    reasoning_effort: high
     title: Valuation critic
     tier: strong
     description: >-
@@ -156,6 +184,8 @@ members:
              cost-of-capital-toolkit, project-investment-analysis, monte-carlo-valuation, valuation-playbooks]
 
   - name: investment-reconciler
+    model: gpt-5.6-sol
+    reasoning_effort: high
     title: Investment reconciler
     tier: writer
     description: >-

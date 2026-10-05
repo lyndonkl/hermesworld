@@ -30,10 +30,7 @@ Bot, Bot Chat and teammate message are in the repository README under "Words use
 | `valuation-critic` | Adversarial review; findings, never edits | strong |
 | `investment-reconciler` | Verdict, range, margin of safety, the report | writer |
 
-Tiers map to OpenRouter models pinned in each member's `config.yaml`: orchestrator and
-strong on `z-ai/glm-5.3-flash`, fast and writer on `google/gemini-3.7-flash`, housekeeping
-on `z-ai/glm-5.3-flash`. Change them all at once with `tools/team_models.py` or one at a time
-with `hermes -p <member> model`; the reasoning is in `docs/MODELS.md`.
+Each member defaults to an OpenAI subscription model with reasoning effort chosen for its role. Use `tools/team_models.py valuation --preset balanced` for OpenRouter or `--preset codex-pro` to restore OpenAI routing. See `docs/MODELS.md` for the complete mapping.
 
 ## How it works
 
