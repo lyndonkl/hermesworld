@@ -36,7 +36,7 @@ Then start a session:
 hermes -p superforecaster chat
 ```
 
-The package pins `z-ai/glm-5.3-flash` on OpenRouter at high reasoning effort (see `docs/MODELS.md`); change it any time with `hermes -p superforecaster model`. The agent needs a web-capable provider (it searches for every base rate) and nothing else.
+The default is `gpt-5.6-sol` through `openai-codex` with high reasoning effort. Install with `--models balanced` for OpenRouter, or use `tools/profile_models.py` to switch installed profiles. See `docs/MODELS.md`.
 
 Optional: `readability-check` scores the final write-up with the `textstat` package. Without it the script prints the install line and exits 3, and the agent states the exception instead of scoring.
 
@@ -76,7 +76,7 @@ The two shared skills are copied from `shared/skills/` by `tools/sync_shared.py`
 - **Depth is inferred, then confirmable.** The original opened by asking "Quick, Standard or Deep?". This version infers the depth from the request, states it, and lets you redirect; the clarifying question is reserved for ambiguity in the forecasting question itself.
 - **Tool names** follow Hermes: `web_search` and `web_extract` for evidence, `write_file` for the forecast document, `todo` for the pipeline checklist.
 - **Skill layout** follows Hermes: `resources/` became `scripts/`, `references/`, `templates/`, and `assets/`, and every skill carries a 60-character description, tags, and related skills for the Hermes skill index.
-- **A pinned model.** The Claude agent inherited its model from the plugin; here `config.yaml` pins `z-ai/glm-5.3-flash` on OpenRouter, chosen for reasoning plus web research (`docs/MODELS.md`).
+- **Model routing.** The default is `gpt-5.6-sol` through `openai-codex` with high reasoning effort. Install with `--models balanced` for OpenRouter, or use `tools/profile_models.py` to switch installed profiles. See `docs/MODELS.md`.
 
 ## Files
 

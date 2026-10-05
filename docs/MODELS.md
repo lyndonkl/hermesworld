@@ -1,172 +1,123 @@
-# Choosing models for these agents
+# Model providers and reasoning for hermesworld profiles
 
-Where a model can be set in Hermes, what each agent here actually demands, and
-which OpenRouter models fit each demand as of 2026-09-09. Benchmark numbers are
-from [Artificial Analysis](https://artificialanalysis.ai) (Intelligence Index
-v4.3 and its agentic evaluations); prices are OpenRouter's live list prices per
-1M tokens on the same day. Re-check both before spending real money; they move.
+The default `codex-pro` policy uses `openai-codex` for all 25 profiles,
+authenticated with your ChatGPT account. OpenRouter is available through the
+`balanced`, `qwen`, `budget`, and `frontier` presets. Honcho continues to use OpenRouter for its server-side reasoning and
+embeddings; its settings and stored memories are independent of these routes.
 
-## Where a model can be set
+## Authenticate and migrate existing profiles
 
-Hermes picks a model per **profile** (session), never per skill. A skill is a
-document loaded into the running agent's context, so it runs on whatever model
-that agent is using.
-
-| Scope | Config | Applies to |
-|---|---|---|
-| A profile | `model.default` and `model.provider` in that profile's `config.yaml`, or `hermes -p <name> model` | Everything that profile does, including every skill it loads |
-| Delegated children | `delegation.model` / `delegation.provider` in the parent's `config.yaml` | Every `delegate_task` child of that profile, all the same model |
-| Auxiliary jobs | `auxiliary.<role>` in `config.yaml`: `compression`, `background_review`, `review`, `title_generation`, `vision`, `approval`, `skills_hub`, `mcp`, `memory_query_rewrite`, `tts_audio_tags`, `triage_specifier`, `kanban_decomposer`, `profile_describer`, `goal_judge`, `curator`, `monitor`, `moa_reference`, `moa_aggregator` | Housekeeping calls, independent of the main model. A role left unset runs on the main model at its price; the packages pin every text role to the cheap model |
-| Reasoning effort | `agent.reasoning_effort` (`none`, `minimal`, `low`, `medium`, `high`, `xhigh`, `max`, `ultra`) and per-model `agent.reasoning_overrides` | How hard the chosen model thinks; each model accepts a subset, and on OpenRouter Hermes rounds an unsupported level down to the nearest one the model offers |
-| Mixture of Agents | `moa.presets` (reference models + an aggregator), selected as the model | Several models per turn, one acting; expensive, not a per-skill switch |
-| Kanban task | `hermes kanban set-model <id> <model>` | One board task, when using the Kanban dispatcher |
-
-Consequences for this repo:
-
-- The **fifteen-profile valuation team** uses a model per specialist, set in each
-  member's `config.yaml` from the tier map in `teams/valuation/team.yaml`.
-- Skills that need a different model must move to a different profile or to a
-  delegated child; there is no other mechanism.
-
-## What each agent demands
-
-| Workload | Agents | What matters | Benchmarks that proxy it |
-|---|---|---|---|
-| Long-horizon orchestration | `valuation-orchestrator` | Multi-turn state tracking, tool discipline, reading artifacts, not drifting over 20+ turns | AA-Briefcase (long-horizon knowledge work), GDPval-AA v2 (shell + web agent loop) |
-| Judgment specialists | `company-diagnostician`, `business-narrative-analyst`, `intrinsic-valuation-analyst`, `special-situations-analyst`, `capital-structure-analyst`, `investment-analyst`, `real-options-analyst`, `valuation-critic`, `investment-reconciler`; standalone `superforecaster`, `product-strategist` | Domain reasoning over long references (the playbooks are ~100 KB), defensible choices of inputs, adversarial review, prose quality | Intelligence Index, GDPval-AA v2 (finance occupations included), AA-LCR long-context reasoning |
-| Procedure specialists | `financial-data-collector`, `financial-statement-analyst`, `cost-of-capital-analyst`, `relative-valuation-analyst`, `payout-policy-analyst` | Follow a fixed procedure, run the bundled Python engines correctly, source numbers with citations | AA-AnalystAgent (spreadsheet/document quantitative work, pass^5), Terminal-Bench, GDPval-AA v2 |
-| Code-heavy design | `geometric-deep-learning-architect`, `cognitive-design-architect` | Maths and PyTorch or D3 code alongside explanation | Terminal-Bench v4.0, Intelligence Index |
-| Housekeeping | `auxiliary.*` roles, delegation children that only summarise | Cheap and fast; correctness of short outputs | price and tokens/sec |
-
-## The numbers that drove the picks
-
-Artificial Analysis, 2026-09-09. Elo columns are pairwise-comparison ratings;
-higher is better. Blanks mean the row was not in the tables retrieved.
-
-| Model (AA name) | Intelligence Index v4.3 | AA-Briefcase Elo | GDPval-AA v2 Elo | Other | OpenRouter id | $/1M in / out |
-|---|---|---|---|---|---|---|
-| Claude Fable 5.1 (xhigh) | 53 | 1650 | 1745 | Terminal-Bench v4 55.1%, AA-LCR 85.3% (max) | `anthropic/claude-fable-5.1` | 10 / 50 |
-| GPT-6 Astra (xhigh) | 53 | 1534 | | Terminal-Bench v4 59.6% (best) | `openai/gpt-6-astra` | 10 / 50 |
-| Claude Opus 5 (xhigh) | 50 | 1625 | 1708 | | `anthropic/claude-opus-5` | 5 / 25 |
-| Muse Spark 1.3 (max) | 48 | 1589 | 1703 | 222 tokens/s | `meta/muse-spark-1.3` | 1.25 / 4.25 |
-| GPT-5.6 Sol (max) | 47 | | 1624 | | `openai/gpt-5.6-sol` | 2 / 10 |
-| GLM-5.3 (max) | 45 | 1515 | 1675 | | `z-ai/glm-5.3` | 1.40 / 4.40 |
-| Grok 4.6 (xhigh) | 44 | 1545 | 1663 | | `x-ai/grok-4.6` | 2 / 6 |
-| Kimi K3 (max) | 44 | 1497 | 1584 | AA-LCR 88.7% (best) | `moonshotai/kimi-k3` | 3 / 15 |
-| GLM-5.3-Flash | 42 | 1449 | 1656 | 1M window at 25 of 27 OpenRouter providers | `z-ai/glm-5.3-flash` | 0.07 / 0.25 |
-| DeepSeek V4.1 Flash (max) | 40 | 1424 | 1632 | 217 tokens/s; very verbose (250M tokens on the index) | `deepseek/deepseek-v4.1-flash` | 0.15 / 0.60 |
-| Qwen3.8-Flash-Next | 40 | 1587 | 1647 | 256K window and 52 tokens/s on the benchmarked API; OpenRouter's `Qwen3.8 Flash` lists 1M, so it may be a different variant | `qwen/qwen3.8-flash` (mapping unconfirmed) | 0.15 / 0.47 |
-| Gemini 3.8 Flash (high) | 41 | 1202 | 1464 | 272 tokens/s | `google/gemini-3.8-flash` | 0.75 / 3.75 |
-| GPT-5.6 Luna (max) | 38 | 1339 | 1489 | cheapest per index task ($0.18) but weak on both agentic tables | `openai/gpt-5.6-luna` | 0.20 / 1.20 |
-| Gemini 3.7 Flash (high) | | | | AA-AnalystAgent 60.0% pass^5 (best) | `google/gemini-3.7-flash` | 0.75 / 3.75 |
-| Claude Sonnet 5 | | | | not in the retrieved rows | `anthropic/claude-sonnet-5` | 2 / 10 |
-
-Two things stand out. Muse Spark 1.3 sits within about 60 Elo of the frontier on
-both agentic evaluations at an eighth of the price and three times the speed.
-GLM-5.3-Flash sits 47 Elo behind Muse Spark on agentic real-world work and 140 behind
-on long-horizon work, at one eighteenth of the input price.
-
-The shipped default moved from Muse Spark to GLM-5.3-Flash on 2026-09-12 (rows for the
-newer models were added that day). Three full valuation runs on Muse Spark put it at 46%
-of all tokens and most of the bill; on the measured token mix the same work costs about
-one fifteenth on GLM-5.3-Flash. We've since replaced the legacy `spark` preset with a `qwen` preset (`qwen/qwen3.6-plus`), offering strong reasoning at a fraction of the cost of Muse Spark ($0.325 input / $1.95 output compared to $1.25 / $4.25).
-
-## A writing model, for reports
-
-Long-form prose is judged by people, not by pass rates, so the evidence here is the
-Arena (formerly LMArena) Creative Writing leaderboard, human pairwise votes, updated
-2026-09-02. Anthropic models top it, but the owner of this repo does not want Opus
-writing reports, so the picks below are the strongest non-Anthropic rows that are on
-OpenRouter:
-
-| Model (Arena name) | Arena score | Votes | OpenRouter id | $/1M in / out |
-|---|---|---|---|---|
-| gemini-3.7-flash-high | 1496 ± 18 | 1,203 | `google/gemini-3.7-flash` at `high` | 0.75 / 3.75 |
-| gemini-3.8-flash-high | 1495 ± 19 | 1,086 | `google/gemini-3.8-flash` at `high` | 0.75 / 3.75 |
-| gemini-3-pro / 3.1-pro-preview | 1483 / 1479 | 6,236 / 17,972 | `google/gemini-3.1-pro-preview` | 2 / 12 |
-| gpt-5.6-sol-xhigh | 1477 ± 10 | 4,670 | `openai/gpt-5.6-sol` at `xhigh` | 2 / 10 |
-| glm-5.3-max | 1467 ± 15 | 1,719 | `z-ai/glm-5.3` at `max` | 1.40 / 4.40 |
-| qwen3.8-max | 1466 ± 13 | 2,604 | `qwen/qwen3.8-max-0902` | 2 / 6 |
-| muse-spark | 1464 ± 14 | 1,949 | `meta/muse-spark-1.3` | 1.25 / 4.25 |
-| kimi-k3-max | 1460 ± 11 | 3,577 | `moonshotai/kimi-k3` | 3 / 15 |
-
-For reference, the Anthropic rows: claude-fable-5 1504, claude-opus-4-6-high 1500,
-claude-fable-5.1-max 1487, claude-opus-5-high 1475.
-
-**Writer tier = `z-ai/glm-5.3-flash` at `high`.** It ties for the best non-Anthropic
-writing score, it also holds the best AA-AnalystAgent result (60% pass^5 on spreadsheet and
-document work, which is what a strategy or valuation report is built from), and it costs
-a fifth of the alternatives. `openai/gpt-5.6-sol` at `xhigh` is the frontier alternative
-when the report needs more reasoning of its own: Intelligence Index 47 and GDPval-AA 1624.
-
-Where the writer tier is used:
-
-- `investment-reconciler` in the Bot team writes `REPORT.md`, so its profile runs the
-  writer model. Its reconciliation judgment is bounded by artifacts the strong-tier
-  specialists already produced.
-- `product-strategist` runs two models: the profile's own model does the research and
-  curation (Steps 1 to 7), and a `delegate_task` child on `delegation.model` writes the
-  report and runs the comprehension pass (Step 8). The parent verifies (Step 9).
-
-## Presets
-
-`tools/team_models.py` applies these to the installed team; the same ids work
-for `hermes -p <name> model` on the standalone agents.
-
-| Tier | frontier | balanced (shipped default) | qwen | budget |
-|---|---|---|---|---|
-| `orchestrator` | `anthropic/claude-fable-5.1` at `xhigh` | `z-ai/glm-5.3-flash` at `high` | `qwen/qwen3.6-plus` at `high` | `z-ai/glm-5.3-flash` at `high` |
-| `strong` | `anthropic/claude-opus-5` at `xhigh` | `z-ai/glm-5.3-flash` at `high` | `qwen/qwen3.6-plus` at `high` | `z-ai/glm-5.3-flash` at `high` |
-| `fast` | `anthropic/claude-sonnet-5` at `high` | `z-ai/glm-5.3-flash` at `medium` | `z-ai/glm-5.3-flash` at `medium` | `z-ai/glm-5.3-flash` at `medium` |
-| `writer` | `openai/gpt-5.6-sol` at `xhigh` | `z-ai/glm-5.3-flash` at `high` | `z-ai/glm-5.3-flash` at `high` | `z-ai/glm-5.3-flash` at `high` |
-| auxiliary | `z-ai/glm-5.3-flash` | `z-ai/glm-5.3-flash` | `z-ai/glm-5.3-flash` | `z-ai/glm-5.3-flash` |
-
-`balanced` keeps Gemini 3.7 Flash on the procedure tier because it leads AA-AnalystAgent,
-the spreadsheet-and-document benchmark closest to that work; `budget` puts GLM-5.3-Flash
-there too. GLM-5.3-Flash has one 4-bit provider on OpenRouter (the cheapest one); set
-OpenRouter provider preferences if you want to avoid it.
-
-The balanced column is what every package now ships in its `config.yaml` (provider
-`openrouter`), so a fresh install already runs on these. The team's picks live in
-`teams/valuation/team.yaml` under `models:`; the standalone agents' in their own
-`config.yaml`. Installers keep their `config.yaml` across updates, so a later change of
-mind is made on the installed profile, not by re-installing.
+Use a current Hermes release and authenticate once in the root Hermes home:
 
 ```bash
-python3 tools/team_models.py valuation --preset balanced          # after tools/install.sh --team valuation
-python3 tools/team_models.py valuation --preset frontier --provider openrouter
-python3 tools/team_models.py valuation --orchestrator anthropic/claude-fable-5.1 \
-        --strong qwen/qwen3.6-plus --fast z-ai/glm-5.3-flash    # or mix by hand
-python3 tools/team_models.py valuation --show
+hermes auth add openai-codex
+python3 tools/profile_models.py --all          # preview installed profile changes
+python3 tools/profile_models.py --all --apply  # apply with per-profile backups
 ```
 
-Per-profile picks for the standalone agents, same reasoning:
+The migration updates only model routes and reasoning settings. It preserves
+Honcho, memory, tools, Bot metadata, and unrelated configuration. Existing
+profile updates preserve config.yaml, so pulling this PR alone does not migrate
+your installed profiles. Restart active profile sessions after applying it.
+The backup beside each config can be copied back to restore the previous setup.
 
-| Profile | Start with | Why |
+For a single profile or a complete team:
+
+```bash
+python3 tools/profile_models.py --profile product-strategist --apply
+python3 tools/team_models.py valuation --preset codex-pro
+python3 tools/team_models.py engineering --preset codex-pro
+python3 tools/team_models.py exploratory --preset codex-pro
+```
+
+Fresh installs use the shipped settings automatically (`tools/install.sh --all`).
+Distribution manifests do not require an OpenAI API key or an OpenRouter key for
+bot inference. Keep your OpenRouter credentials for Honcho; `tools/memory.sh`
+and the Honcho environment template continue to use them.
+
+## Model and effort choices
+
+Models are selected per profile, not per skill. These starting allocations follow
+the actual work described by each profile; they are recommendations, not measured
+performance results. Team member overrides live in `teams/<team>/team.yaml`.
+Standalone choices live in the package config.yaml. Regenerate teams with
+`python3 tools/build_team.py <team>` after changing their source manifests.
+
+| Work | Profiles | Model | Reasoning effort |
+|---|---|---|---|
+| Coordination | valuation-orchestrator, engineering-planner, exploratory-strategist | gpt-5.6-sol | high |
+| Difficult judgment and maths | intrinsic-valuation-analyst, special-situations-analyst, real-options-analyst, valuation-critic, geometric-deep-learning-architect, ml-engineer | gpt-6-astra | high |
+| Analysis and implementation | company-diagnostician, business-narrative-analyst, capital-structure-analyst, investment-analyst, software-engineer, product-strategist, superforecaster, cognitive-design-architect | gpt-5.6-sol | high |
+| Financial procedures | financial-statement-analyst, cost-of-capital-analyst, relative-valuation-analyst, payout-policy-analyst | gpt-5.6-terra | medium |
+| Collection and assistance | financial-data-collector, welch-ai-guide | gpt-5.6-terra | low |
+| Reconciliation and review | investment-reconciler, code-reviewer | gpt-5.6-sol | high |
+
+Delegated children use their parent's model and effort through explicit routes.
+The product strategist's report writer is explicitly pinned to Sol at high effort.
+All primary and delegated fallback chains are disabled: subscription exhaustion
+surfaces a failure rather than switching to OpenRouter.
+
+Auxiliary policy is shared by generation and migration in `tools/profile_models.py`:
+
+| Auxiliary work | Model | Effort |
 |---|---|---|
-| `superforecaster` | `z-ai/glm-5.3-flash` | Reasoning plus many web searches; frontier `anthropic/claude-fable-5.1` |
-| `product-strategist` | `z-ai/glm-5.3-flash` for research, `delegation.model: qwen/qwen3.6-plus` for the report | Reasoning and news curation first; the writing model drafts the report as a delegated child |
-| `cognitive-design-architect` | `z-ai/glm-5.3-flash` | Design reasoning and D3 code; frontier `openai/gpt-6-astra` for the coding end |
-| `geometric-deep-learning-architect` | `openai/gpt-6-astra` at `high`, or `z-ai/glm-5.3-flash` to start | Maths plus PyTorch; GPT-6 Astra leads Terminal-Bench v4 |
+| Compression | gpt-5.6-terra | low |
+| Review, background review | gpt-5.6-sol | high |
+| Vision, goal judging, Kanban decomposition | gpt-5.6-terra | medium |
+| Titles, approval assistance, skill lookup, MCP assistance, profile descriptions, curator, monitor, query rewrites, audio tags, triage | gpt-5.6-luna | low |
 
-Reasoning effort: set it in the profile's `config.yaml` (`agent.reasoning_effort`).
-Each model accepts a specific set of levels. On OpenRouter, Hermes rounds a level
-the model does not offer down to the nearest one it does, so a wrong level is not
-an error. Natively: Fable 5.1, GPT-6 Astra and Opus 5 take `low` to `max`; Muse
-Spark 1.3 takes `minimal` to `xhigh`; GLM-5.3 and GLM-5.3-Flash take `low`,
-`medium`, `high` and `max`; Gemini 3.7 Flash takes `low` to `high`. The generated
-team configs use `high` for the strong and orchestrator tiers and `medium` for fast.
+MoA auxiliary routes also use OpenAI, but reasoning for an active MoA preset must
+be specified in its reference and aggregator slots. No MoA presets ship here.
 
-## How to decide for real
+Every auxiliary provider is explicitly `openai-codex`. Query rewriting is a
+Hermes-side auxiliary job; Honcho's own model calls still use OpenRouter.
+Explicit auxiliary endpoints and API keys are removed during migration because
+they override provider routing. Per-model reasoning overrides are cleared so the
+profile's selected effort applies. The migration preserves unrelated task options.
 
-1. Install the team, apply `--preset balanced`, run one valuation of a company you
-   know well, and read the critic's findings and the reconciler's report.
-2. Move single stages up or down a tier with `hermes -p <member> model` and
-   re-run only that stage (the orchestrator resumes from `state.json`).
-3. Keep `auxiliary.*` on the cheapest model regardless; nothing there needs
-   reasoning.
-4. Re-check the leaderboards before committing to a long project. The rows
-   above were retrieved on 2026-09-09.
+## Subscription access and usage
+
+These routes use ChatGPT/Codex OAuth, not the separately billed OpenAI API.
+Authenticate in Hermes rather than copying OAuth tokens between profiles.
+Pro includes Astra and the GPT-5.6 family in Codex, subject to account access and
+usage limits. Availability changes; check the Hermes model picker before a long run.
+Higher effort and additional auxiliary calls consume allowance and increase latency.
+Hermes currently does not document exact plan-quota accounting for its Codex route.
+
+Sources checked 2026-10-04:
+
+- [Hermes providers and subscription authentication](https://hermes-agent.nousresearch.com/docs/integrations/providers)
+- [Hermes auxiliary model and reasoning configuration](https://hermes-agent.nousresearch.com/docs/user-guide/configuration)
+- [OpenAI model availability in Codex](https://help.openai.com/en/articles/20001354-gpt-56-and-gpt-6-pro-in-chatgpt)
+- [Codex usage with ChatGPT plans](https://help.openai.com/en/articles/11369540-using-codex-with-your-chatgpt-plan)
+
+## Choose OpenAI or OpenRouter during setup
+
+```bash
+# ChatGPT/Codex subscription (default); complete OAuth first
+hermes auth add openai-codex
+tools/install.sh --all --models codex-pro
+
+# OpenRouter; use `hermes model` to configure OPENROUTER_API_KEY first
+tools/install.sh --all --models balanced
+
+# Switch installed profiles with a preview, then apply
+python3 tools/profile_models.py --all --preset balanced
+python3 tools/profile_models.py --all --preset balanced --apply
+python3 tools/profile_models.py --all --preset codex-pro --apply
+```
+
+Both providers update primary, auxiliary, delegated routes and reasoning together.
+OpenRouter presets use the previous project's tier choices: `balanced` and
+`budget` use GLM-5.3-Flash throughout; `qwen` uses Qwen3.6-Plus for coordination
+and judgment; `frontier` uses Fable/Opus/Sonnet and GPT-5.6 Sol for writing.
+Their auxiliary calls use GLM-5.3-Flash with role-specific effort. These are
+historical picks, not live benchmark guarantees; confirm model availability.
+The provider and model IDs are selected together so OpenRouter IDs cannot
+accidentally be sent to the Codex endpoint. Named profile API keys are seeded
+locally from the root Hermes .env when missing; OAuth tokens are never copied.
+The migration writes a protected backup beside each changed config.
+Honcho's OpenRouter routing is preserved under either inference policy.
 
 ## Memory providers, briefly
 

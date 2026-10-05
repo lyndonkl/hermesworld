@@ -14,7 +14,9 @@
 # as the update source, so `git pull && hermes profile update <name>` picks up
 # new versions.
 #
-# After each install, tools/post_install.py:
+# --models selects all inference routes (default: codex-pro). Authenticate first
+# with `hermes auth add openai-codex`, or configure OpenRouter via `hermes model`.
+# After routing is applied, tools/post_install.py:
 #   1. seeds the profile's model block from your root profile only if a package ever
 #      ships without one (all of ours pin a model); change it with `hermes -p <name> model`;
 #   2. for team members (packages with a bot.yaml), writes the profile's Bot
@@ -26,6 +28,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 HERMES_HOME_ROOT="${HERMES_HOME:-$HOME/.hermes}"
 ALIAS="--alias"
+MODEL_PRESET="codex-pro"
 PKGS=()
 TEAMS=()
 
@@ -49,6 +52,9 @@ while [ $i -lt ${#args[@]} ]; do
       [ -f "$ROOT/teams/$team/team.yaml" ] || { echo "no team manifest teams/$team/team.yaml" >&2; exit 2; }
       TEAMS+=("$team")
       while IFS= read -r m; do PKGS+=("$m"); done < <(team_members "$team") ;;
+    --models)
+      i=$((i+1)); MODEL_PRESET="${args[$i]:-}"
+      case "$MODEL_PRESET" in codex-pro|frontier|balanced|qwen|budget) ;; *) echo "unknown model preset: $MODEL_PRESET" >&2; exit 2 ;; esac ;;
     --no-alias) ALIAS="" ;;
     -h|--help) sed -n '2,22p' "$0"; exit 0 ;;
     *) PKGS+=("$arg") ;;
@@ -57,7 +63,7 @@ while [ $i -lt ${#args[@]} ]; do
 done
 
 if [ ${#PKGS[@]} -eq 0 ]; then
-  echo "usage: tools/install.sh <package>... | --all | --team <name>  [--no-alias]" >&2
+  echo "usage: tools/install.sh <package>... | --all | --team <name>  [--no-alias] [--models codex-pro|balanced|qwen|budget|frontier]" >&2
   exit 2
 fi
 command -v hermes >/dev/null || { echo "hermes is not on PATH (the desktop app installs it at ~/.local/bin/hermes)" >&2; exit 1; }
@@ -68,6 +74,7 @@ for pkg in "${PKGS[@]}"; do
   echo "==> installing $pkg"
   # shellcheck disable=SC2086
   hermes profile install "$src" $ALIAS --yes --force
+  python3 "$ROOT/tools/profile_models.py" --profile "$pkg" --preset "$MODEL_PRESET" --apply
   python3 "$ROOT/tools/post_install.py" "$src" "$HERMES_HOME_ROOT/profiles/$pkg" "$HERMES_HOME_ROOT/config.yaml"
   echo "    run:  hermes -p $pkg chat      (or just: $pkg chat, if the alias was created)"
 done
@@ -96,6 +103,6 @@ EOF
 Team '$team' installed. Start it:
   - terminal:     $team              (or: $team --tui)
   - desktop app:  Settings -> Plugins -> Bots on, then click $orch in the Bots list
-  - models:       python3 tools/team_models.py $team --preset balanced|frontier|budget   (optional)
+  - models:       python3 tools/team_models.py $team --preset $MODEL_PRESET   (restores selected inference routes)
 EOF
 done

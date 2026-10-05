@@ -47,7 +47,8 @@ def seed_model(profile: Path, root_cfg: Path) -> None:
 
 
 # Provider id -> the env var(s) Hermes reads for it (hermes_cli/auth.py provider table). `nous` is
-# OAuth (hermes auth), so it needs no key here.
+# OAuth (hermes auth), so it needs no key here. Codex OAuth is managed by
+# Hermes in its root auth store; never copy OAuth refresh tokens into profiles.
 PROVIDER_KEYS = {
     "openrouter": ["OPENROUTER_API_KEY"], "anthropic": ["ANTHROPIC_API_KEY"],
     "openai-api": ["OPENAI_API_KEY"], "openai": ["OPENAI_API_KEY"],
@@ -76,7 +77,7 @@ def seed_provider_key(profile: Path, root_env: Path) -> None:
     cfg = (yaml.safe_load(cfg_path.read_text(encoding="utf-8")) if cfg_path.is_file() else {}) or {}
     model = cfg.get("model") or {}
     provider = (model.get("provider") if isinstance(model, dict) else "") or ""
-    keys = PROVIDER_KEYS.get(provider, [])
+    keys = list(PROVIDER_KEYS.get(provider, []))
     delegation = cfg.get("delegation") or {}
     keys += PROVIDER_KEYS.get(delegation.get("provider") or "", [])
     root = _env_lines(root_env)
